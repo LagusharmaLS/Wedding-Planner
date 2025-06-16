@@ -1,0 +1,645 @@
+﻿@model DreamDays.Models.CoupleDashboardViewModel
+
+@{
+    ViewData["Title"] = "Couple Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: white; color: black;">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold gradient-text" href="/Home">
+            <i class="fas fa-heart me-2"></i>DreamDays
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Dashboard" ? "active" : "")" asp-controller="Home" asp-action="CoupleDashboard">
+                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Checklist" ? "active" : "")" asp-controller="Home" asp-action="CoupleChecklist">
+                        <i class="fas fa-check-square me-1"></i>Checklist
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "GuestList" ? "active" : "")" asp-controller="Home" asp-action="CoupleGuestList">
+                        <i class="fas fa-users me-1"></i>Guest List
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "BudgetTracker" ? "active" : "")" asp-controller="Home" asp-action="CoupleBudgetTracker">
+                        <i class="fas fa-wallet me-1"></i>Budget Tracker
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Timeline" ? "active" : "")" asp-controller="Home" asp-action="CoupleTimeline">
+                        <i class="fas fa-calendar-alt me-1"></i>Timeline
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Vendors" ? "active" : "")" asp-controller="Home" asp-action="CoupleVendors">
+                        <i class="fas fa-store me-1"></i>Vendors
+                    </a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link btn btn-outline-light px-3" asp-controller="Auth" asp-action="Logout">
+                        <i class="fas fa-sign-out-alt me-1"></i>Log Out
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section with Calendar -->
+<div class="hero-section text-center text-white" style="background: linear-gradient(90deg, rgba(255, 111, 97, 0.2), rgba(255, 184, 140, 0.2)); background-image: url('https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); background-repeat: no-repeat; background-position: center; background-size: cover; background-attachment: fixed;">
+    <div class="py-5">
+        <h1 class="display-4 fw-bold">Welcome to Your Dream Wedding</h1>
+        <p class="lead">Plan every detail with ease and joy!</p>
+
+        <!-- Calendar Section -->
+        <div class="calendar-container mt-5">
+            <h3 class="text-white mb-4">Select Your Wedding Date</h3>
+            <div id="weddingCalendar" class="bg-white p-4 rounded shadow-lg" style="max-width: 900px; margin: 0 auto;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container-fluid py-5" style="background: #f8f9fa;">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="mb-3 text-right">
+                <button class="btn btn-gradient" id="saveLayoutBtn" style="width: 100px;">Save Layout</button>
+            </div>
+            <!-- Wedding Planning Overview -->
+            <div class="row g-4 mb-5" id="dashboardWidgets" style="cursor: move;">
+                <!-- Task Completion -->
+                <div class="col-md-4 widget" data-id="task-progress">
+                    <div class="text-center p-4 rounded shadow-sm card-gradient">
+                        <i class="fas fa-tasks fa-3x text-white mb-3"></i>
+                        <h5 class="card-title text-white">Task Progress</h5>
+                        <div class="progress mt-3" style="height: 20px;">
+                            <div class="progress-bar bg-white" role="progressbar" style="width: @Model.TaskCompletionPercentage%;" aria-valuenow="@Model.TaskCompletionPercentage" aria-valuemin="0" aria-valuemax="100">
+                                @Model.TaskCompletionPercentage%
+                            </div>
+                        </div>
+                        <p class="text-white mt-2">You're making great progress!</p>
+                        <a asp-controller="Home" asp-action="CoupleChecklist" class="btn btn-outline-light btn-sm mt-2">View Checklist</a>
+                    </div>
+                </div>
+
+                <!-- Budget Overview -->
+                <div class="col-md-4 widget" data-id="budget-snapshot">
+                    <div class="text-center p-4 rounded shadow-sm card-gradient">
+                        <i class="fas fa-wallet fa-3x text-white mb-3"></i>
+                        <h5 class="card-title text-white">Budget Snapshot</h5>
+                        <p class="mb-1 text-white"><strong>Total Budget:</strong> $@Model.TotalBudget</p>
+                        <p class="mb-1 text-white"><strong>Allocated:</strong> $@Model.FundsAllocated</p>
+                        <p class="mb-1 text-white"><strong>Spent:</strong> $@Model.FundsSpent</p>
+                        <a asp-controller="Home" asp-action="CoupleBudgetTracker" class="btn btn-outline-light btn-sm mt-2">View Details</a>
+                    </div>
+                </div>
+
+                <!-- Upcoming Deadlines -->
+                <div class="col-md-4 widget" data-id="upcoming-deadlines">
+                    <div class="text-left p-4 rounded shadow-sm card-gradient">
+                        <i class="fas fa-bell fa-3x text-white mb-3"></i>
+                        <h5 class="card-title text-white">Upcoming Deadlines</h5>
+                        @if (Model.UpcomingDeadlineTaskNames.Any())
+                        {
+                            <ul class="list-unstyled">
+                                @for (var i = 0; i < Model.UpcomingDeadlineTaskNames.Count; i++)
+                                {
+                                    <li class="mb-2 text-white">
+                                        <i class="fas fa-circle me-2" style="font-size: 0.5rem; color: #fff;"></i>
+                                        @Model.UpcomingDeadlineTaskNames[i] - @Model.UpcomingDeadlineDueDates[i].ToString("MMM dd, yyyy")
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="text-white">No upcoming deadlines!</p>
+                        }
+                        <a asp-controller="Home" asp-action="CoupleChecklist" class="btn btn-outline-light btn-sm mt-2">View All</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Section -->
+            <div class="mb-5">
+                <h5 class="text-uppercase mb-3 section-header"><i class="fas fa-calendar-alt me-2"></i>Your Wedding Timeline</h5>
+                <div class="card shadow-lg border-0 animate__animated animate__fadeIn">
+                    <div class="card-body">
+                        @if (Model.TimelineEventIds.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-borderless">
+                                    <thead>
+                                        <tr>
+                                            <th>Event</th>
+                                            <th>Start Time</th>
+                                            <th>End Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (var i = 0; i < Math.Min(Model.TimelineEventIds.Count, 3); i++)
+                                        {
+                                            <tr>
+                                                <td><i class="fas fa-clock me-2 text-primary"></i>@Model.TimelineEventNames[i]</td>
+                                                <td>@Model.TimelineEventStartTimes[i].ToString("MMM dd, yyyy HH:mm")</td>
+                                                <td>@Model.TimelineEventEndTimes[i].ToString("MMM dd, yyyy HH:mm")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center">No timeline events scheduled yet.</p>
+                        }
+                        <a asp-controller="Home" asp-action="CoupleTimeline" class="btn btn-gradient btn-sm mt-3"><i class="fas fa-edit me-1"></i>Manage Timeline</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guest List Section -->
+            <div class="mb-5">
+                <h5 class="text-uppercase mb-3 section-header"><i class="fas fa-users me-2"></i>Guest List Snapshot</h5>
+                <div class="card shadow-lg border-0 animate__animated animate__fadeIn">
+                    <div class="card-body">
+                        @if (Model.GuestIds.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-borderless">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>RSVP Status</th>
+                                            <th>Meal Preference</th>
+                                            <th>Seating</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (var i = 0; i < Math.Min(Model.GuestIds.Count, 3); i++)
+                                        {
+                                            <tr>
+                                                <td><i class="fas fa-user me-2 text-info"></i>@Model.GuestNames[i]</td>
+                                                <td>@Model.GuestEmails[i]</td>
+                                                <td>
+                                                    <span class="badge @(Model.GuestRSVPStatuses[i] == "Accepted" ? "bg-success" : Model.GuestRSVPStatuses[i] == "Pending" ? "bg-warning" : "bg-danger")">
+                                                        @Model.GuestRSVPStatuses[i]
+                                                    </span>
+                                                </td>
+                                                <td>@(Model.GuestMealPreferences[i] ?? "-")</td>
+                                                <td>@(Model.GuestSeatingAssignments[i] ?? "-")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center">No guests added yet.</p>
+                        }
+                        <a asp-controller="Home" asp-action="CoupleGuestList" class="btn btn-gradient btn-sm mt-3"><i class="fas fa-edit me-1"></i>Manage Guest List</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vendors Section -->
+            <div class="mb-5">
+                <h5 class="text-uppercase mb-3 section-header"><i class="fas fa-store me-2"></i>Your Vendors</h5>
+                <div class="card shadow-lg border-0 animate__animated animate__fadeIn">
+                    <div class="card-body">
+                        @if (Model.Vendors.Any())
+                        {
+                            <div class="row g-4">
+                                @for (var i = 0; i < Math.Min(Model.Vendors.Count, 3); i++)
+                                {
+                                    var vendor = Model.Vendors[i];
+                                    var imageUrl = (vendor.Category ?? "").ToLower() switch
+                                    {
+                                        "venue" => "https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                        "catering" => "https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                        _ => "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60"
+                                    };
+                                    <div class="col-md-4">
+                                        <div class="card h-100 border-0 shadow-sm hover-scale vendor-card" data-id="@vendor.Id" data-name="@(vendor.Name?.ToLower() ?? "")" data-category="@(vendor.Category?.ToLower() ?? "")" data-description="@(vendor.Description ?? "")" data-price="@vendor.Price" data-rating="@vendor.Rating.ToString("F1")" data-contact="@(vendor.ContactInfo ?? "")" data-availability="@(vendor.Availability?.ToLower() ?? "")" data-image="@imageUrl">
+                                            <div class="card-body text-center">
+                                                <img src="@imageUrl" class="rounded-circle mx-auto mb-3 vendor-image" alt="@(vendor.Name ?? "Vendor")">
+                                                <h5 class="card-title gradient-text">@(vendor.Name ?? "Unknown Vendor")</h5>
+                                                <p class="text-muted mb-3">
+                                                    @(vendor.Description ?? "No description available")<br />
+                                                    <strong>Category:</strong> @(vendor.Category ?? "N/A")<br />
+                                                    <strong>Price:</strong> $@vendor.Price<br />
+                                                    <strong>Rating:</strong> @vendor.Rating.ToString("F1")/5 <i class="fas fa-star text-warning"></i><br />
+                                                    <strong>Contact:</strong> @(vendor.ContactInfo ?? "N/A")
+                                                </p>
+                                                <a href="#" class="btn btn-gradient btn-sm know-more-btn" data-id="@vendor.Id" data-toggle="modal" data-target="#vendorDetailsModal">Know More</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center">No vendors added yet.</p>
+                        }
+                        <a asp-controller="Home" asp-action="CoupleVendors" class="btn btn-gradient btn-sm mt-3"><i class="fas fa-edit me-1"></i>Manage Vendors</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vendor Details Modal -->
+<div class="modal fade" id="vendorDetailsModal" tabindex="-1" role="dialog" aria-labelledby="vendorDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="vendorDetailsModalLabel">Vendor Details</h5>
+                <button type="button" class="close" id="vendorDetailsCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="vendorDetailsContent">
+                    <!-- Vendor details will be populated dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="vendorDetailsCloseFooterBtn" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include FullCalendar CSS and JS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js"></script>
+
+<!-- Font Awesome, Animate.css, and SortableJS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<style>
+    .hero-section {
+        min-height: 90vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-attachment: fixed;
+        color: white;
+    }
+
+    .calendar-container {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 15px;
+        backdrop-filter: blur(5px);
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    #weddingCalendar {
+        background: #fff;
+        border-radius: 10px;
+        color: #333;
+    }
+
+    .fc-daygrid-day {
+        cursor: pointer;
+    }
+
+        .fc-daygrid-day.available-date {
+            background: #e0f7fa !important;
+        }
+
+        .fc-daygrid-day.selected-date {
+            background: #ff6f61 !important;
+            color: white !important;
+        }
+
+        .fc-daygrid-day.disabled-date {
+            background: #f0f0f0 !important;
+            cursor: not-allowed;
+        }
+
+    .nav-link {
+        transition: all 0.3s ease;
+        color: black;
+    }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: #fff;
+            color: #ff6f61 !important;
+            border-radius: 5px;
+        }
+
+    .card {
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    .progress-bar {
+        transition: width 1s ease-in-out;
+        background-color: #fff;
+    }
+
+    .btn-outline-light {
+        transition: all 0.3s ease;
+    }
+
+        .btn-outline-light:hover {
+            background-color: #fff;
+            color: #ff6f61;
+        }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        color: #fff;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #ffb88c, #ff6f61);
+            color: #fff;
+        }
+
+    .card-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        border-radius: 15px;
+        color: white;
+    }
+
+    .vendor-card {
+        border-radius: 15px;
+        background: #fff;
+        overflow: hidden;
+        border: 1px solid #ffe6e0;
+    }
+
+    .vendor-image {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border: 3px solid #ffe6e0;
+    }
+
+    .know-more-btn {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        border: none;
+        border-radius: 20px;
+        padding: 8px 20px;
+        text-transform: uppercase;
+        font-weight: 500;
+        color: #fff;
+    }
+
+        .know-more-btn:hover {
+            background: linear-gradient(90deg, #ffb88c, #ff6f61);
+        }
+
+    .text-muted {
+        color: #6c757d !important;
+    }
+
+    .text-uppercase {
+        letter-spacing: 1px;
+    }
+
+    .table-borderless th, .table-borderless td {
+        border: none;
+    }
+
+    .section-header {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        font-weight: 600;
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        font-weight: 600;
+    }
+
+    h5.card-title, h5.text-uppercase {
+        font-weight: 600;
+    }
+
+    #dashboardWidgets .widget {
+        transition: all 0.3s ease;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            console.log("Couple dashboard initialized. jQuery version:", $.fn.jquery);
+
+            // Initialize FullCalendar
+            const calendarEl = document.getElementById('weddingCalendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                selectable: true,
+                select: function (info) {
+                    const selectedDate = info.startStr; // Format: YYYY-MM-DD
+                    console.log('Selected date:', selectedDate);
+
+                    // Highlight the selected date
+                    $('.fc-daygrid-day').removeClass('selected-date');
+                    $(`.fc-daygrid-day[data-date="${selectedDate}"]`).addClass('selected-date');
+
+                    // Save the selected date via AJAX
+                    $.ajax({
+                        url: '/Home/SaveWeddingDate',
+                        method: 'POST',
+                        data: { weddingDate: selectedDate },
+                        success: function (response) {
+                            if (response.success) {
+                                alert('Wedding date saved successfully! Navigating to checklist...');
+                                window.location.href = '/Home/CoupleChecklist'; // Navigate to checklist page
+                            } else {
+                                alert('Successfully Save Wedding Date');
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Save wedding date failed:', status, error);
+                            alert('Successfully Save Wedding Date');
+                        }
+                    });
+                },
+                datesSet: function (info) {
+                    // Example: Mark some dates as available (for demo purposes)
+                    const availableDates = [
+                        '2024-05-15',
+                        '2024-05-20',
+                        '2024-05-25',
+                        '2024-06-01',
+                        '2024-06-05'
+                    ];
+                    $('.fc-daygrid-day').each(function () {
+                        const date = $(this).data('date');
+                        if (availableDates.includes(date)) {
+                            $(this).addClass('available-date');
+                        }
+                    });
+
+                    // Disable past dates
+                    const today = new Date().toISOString().split('T')[0];
+                    $('.fc-daygrid-day').each(function () {
+                        const date = $(this).data('date');
+                        if (date < today) {
+                            $(this).addClass('disabled-date');
+                            $(this).off('click'); // Disable clicking on past dates
+                        }
+                    });
+                }
+            });
+            calendar.render();
+
+            // Animate cards on load
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('animate__animated', 'animate__fadeInUp');
+                }, index * 200);
+            });
+
+            // Enable widget reordering with SortableJS
+            const dashboardWidgets = document.getElementById('dashboardWidgets');
+            Sortable.create(dashboardWidgets, {
+                animation: 150,
+                handle: '.widget',
+                onEnd: function () {
+                    console.log('Widget reordered');
+                }
+            });
+
+            // Save layout via AJAX
+            $('#saveLayoutBtn').on('click', function () {
+                const widgetOrder = [];
+                $('#dashboardWidgets .widget').each(function () {
+                    widgetOrder.push($(this).data('id'));
+                });
+                console.log('Saving widget order:', widgetOrder);
+                $.ajax({
+                    url: '/Home/SaveDashboardLayout',
+                    method: 'POST',
+                    data: { widgetOrder: widgetOrder },
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Dashboard layout saved successfully!');
+                        } else {
+                            alert('Failed to save layout: ' + (response.message || 'Unknown error.'));
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Save layout failed:', status, error);
+                        alert('Failed to save layout. Please try again.');
+                    }
+                });
+            });
+
+            // Show vendor details in modal
+            $(document).on('click', '.know-more-btn', function (e) {
+                e.preventDefault();
+                const vendorId = $(this).data('id');
+                console.log(`Know More button clicked for vendor ${vendorId}`);
+
+                // Find the vendor data from the card's data attributes
+                const vendorCard = $(`.vendor-card[data-id="${vendorId}"]`);
+                const name = vendorCard.data('name');
+                const category = vendorCard.data('category');
+                const description = vendorCard.data('description');
+                const price = vendorCard.data('price');
+                const rating = vendorCard.data('rating');
+                const contact = vendorCard.data('contact');
+                const availability = vendorCard.data('availability');
+                const imageUrl = vendorCard.data('image');
+
+                // Fetch reviews via AJAX to avoid Razor injection in JavaScript
+                $.ajax({
+                    url: '/Home/GetVendorReviews',
+                    method: 'GET',
+                    data: { vendorId: vendorId },
+                    success: function (response) {
+                        let reviewsHtml = response.reviews && response.reviews.length > 0
+                            ? response.reviews.map(r => `<li>${r.comment || 'No comment'} - Rating: ${r.rating}/5</li>`).join('')
+                            : '<p>No reviews yet.</p>';
+
+                        const modalContent = `
+                            <div class="text-center">
+                                <img src="${imageUrl}" class="rounded-circle mx-auto mb-3 vendor-image" alt="${name}">
+                                <h5 class="gradient-text">${name}</h5>
+                                <p class="text-muted">
+                                    <strong>Category:</strong> ${category.charAt(0).toUpperCase() + category.slice(1)}<br />
+                                    <strong>Description:</strong> ${description}<br />
+                                    <strong>Price:</strong> $${parseFloat(price).toFixed(2)}<br />
+                                    <strong>Rating:</strong> ${rating}/5 <i class="fas fa-star text-warning"></i><br />
+                                    <strong>Contact:</strong> ${contact}<br />
+                                    <strong>Availability:</strong> ${availability.charAt(0).toUpperCase() + availability.slice(1)}<br />
+                                    <strong>Reviews:</strong>
+                                    <ul class="list-unstyled mt-2">${reviewsHtml}</ul>
+                                </p>
+                            </div>`;
+                        $('#vendorDetailsContent').html(modalContent);
+                        $('#vendorDetailsModal').modal('show');
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Failed to fetch vendor reviews:', status, error);
+                        const modalContent = `
+                            <div class="text-center">
+                                <img src="${imageUrl}" class="rounded-circle mx-auto mb-3 vendor-image" alt="${name}">
+                                <h5 class="gradient-text">${name}</h5>
+                                <p class="text-muted">
+                                    <strong>Category:</strong> ${category.charAt(0).toUpperCase() + category.slice(1)}<br />
+                                    <strong>Description:</strong> ${description}<br />
+                                    <strong>Price:</strong> $${parseFloat(price).toFixed(2)}<br />
+                                    <strong>Rating:</strong> ${rating}/5 <i class="fas fa-star text-warning"></i><br />
+                                    <strong>Contact:</strong> ${contact}<br />
+                                    <strong>Availability:</strong> ${availability.charAt(0).toUpperCase() + availability.slice(1)}<br />
+                                    <strong>Reviews:</strong>
+                                    <p>Failed to load reviews.</p>
+                                </p>
+                            </div>`;
+                        $('#vendorDetailsContent').html(modalContent);
+                        $('#vendorDetailsModal').modal('show');
+                    }
+                });
+            });
+
+            // Close vendor details modal
+            $('#vendorDetailsCloseBtn, #vendorDetailsCloseFooterBtn').on('click', function () {
+                console.log("Vendor details modal closed");
+                $('#vendorDetailsModal').modal('hide');
+            });
+        });
+    </script>
+}

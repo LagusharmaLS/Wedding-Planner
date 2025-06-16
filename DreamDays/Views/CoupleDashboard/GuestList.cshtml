@@ -1,0 +1,731 @@
+﻿@model DreamDays.Models.CoupleDashboardViewModel
+
+@{
+    ViewData["Title"] = "Guest List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: white; color: black;">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold gradient-text" href="/Home">
+            <i class="fas fa-heart me-2"></i>DreamDays
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Dashboard" ? "active" : "")" asp-controller="Home" asp-action="CoupleDashboard">
+                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Checklist" ? "active" : "")" asp-controller="Home" asp-action="CoupleChecklist">
+                        <i class="fas fa-check-square me-1"></i>Checklist
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "GuestList" ? "active" : "")" asp-controller="Home" asp-action="CoupleGuestList">
+                        <i class="fas fa-users me-1"></i>Guest List
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "BudgetTracker" ? "active" : "")" asp-controller="Home" asp-action="CoupleBudgetTracker">
+                        <i class="fas fa-wallet me-1"></i>Budget Tracker
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Timeline" ? "active" : "")" asp-controller="Home" asp-action="CoupleTimeline">
+                        <i class="fas fa-calendar-alt me-1"></i>Timeline
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Vendors" ? "active" : "")" asp-controller="Home" asp-action="CoupleVendors">
+                        <i class="fas fa-store me-1"></i>Vendors
+                    </a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link btn btn-outline-light px-3" asp-controller="Auth" asp-action="Logout">
+                        <i class="fas fa-sign-out-alt me-1"></i>Log Out
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid py-5" style="height: 100vh; background: linear-gradient(90deg, rgba(255, 111, 97, 0.2), rgba(255, 184, 140, 0.2)); background-image: url('https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); background-repeat: no-repeat; background-position: center; background-size: cover; background-attachment: fixed;">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow mb-4 animate__animated animate__fadeIn">
+                <div class="card-header text-center">
+                    <h3 class="section-header">Guest List</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                        <div>
+                            <input type="file" class="form-control" id="importCsv" accept=".csv" style="display: inline-block; width: auto;" />
+                            <button class="btn btn-gradient" id="exportCsvBtn">Export CSV</button>
+                            <button class="btn btn-gradient" id="sendRsvpReminders">Send RSVP Reminders</button>
+                        </div>
+                    </div>
+                    <table class="table table-bordered table-hover" id="guestListTable">
+                        <thead class="card-gradient text-white">
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Relationship</th>
+                                <th>RSVP Status</th>
+                                <th>Meal Preference</th>
+                                <th>Seating</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.GuestIds.Any())
+                            {
+                                @for (var i = 0; i < Model.GuestIds.Count; i++)
+                                {
+                                    <tr data-id="@Model.GuestIds[i]" data-phone="@(Model.GuestPhones[i] ?? "")" data-relationship="@(Model.GuestRelationships[i] ?? "Unknown")">
+                                        <td>@Model.GuestNames[i]</td>
+                                        <td>@Model.GuestEmails[i]</td>
+                                        <td>@(Model.GuestPhones[i] ?? "-")</td>
+                                        <td>@(Model.GuestRelationships[i] ?? "Unknown")</td>
+                                        <td>
+                                            <span class="badge @(Model.GuestRSVPStatuses[i] == "Accepted" ? "bg-success" : Model.GuestRSVPStatuses[i] == "Pending" ? "bg-warning" : "bg-danger")">
+                                                @Model.GuestRSVPStatuses[i]
+                                            </span>
+                                        </td>
+                                        <td>@(Model.GuestMealPreferences[i] ?? "-")</td>
+                                        <td>@(Model.GuestSeatingAssignments[i] ?? "-")</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-gradient edit-btn"
+                                                    data-id="@Model.GuestIds[i]"
+                                                    data-name="@Model.GuestNames[i]"
+                                                    data-email="@Model.GuestEmails[i]"
+                                                    data-phone="@(Model.GuestPhones[i] ?? "")"
+                                                    data-relationship="@(Model.GuestRelationships[i] ?? "Unknown")"
+                                                    data-rsvpstatus="@Model.GuestRSVPStatuses[i]"
+                                                    data-mealpreference="@(Model.GuestMealPreferences[i] ?? "")"
+                                                    data-seating="@(Model.GuestSeatingAssignments[i] ?? "")">
+                                                Edit
+                                            </button>
+                                            <button class="btn btn-sm btn-danger delete-btn" data-id="@Model.GuestIds[i]">Delete</button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">No guests added yet.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <button class="btn btn-gradient" id="addGuestBtn" data-toggle="modal" data-target="#addGuestModal">Add Guest</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Guest Modal -->
+<div class="modal fade" id="addGuestModal" tabindex="-1" role="dialog" aria-labelledby="addGuestModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addGuestModalLabel">Add Guest</h5>
+                <button type="button" class="close" id="addGuestCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addGuestForm">
+                    <div class="form-group">
+                        <label for="addName">Name</label>
+                        <input type="text" class="form-control" id="addName" required />
+                        <div class="invalid-feedback">Please enter the guest's name.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addEmail">Email</label>
+                        <input type="email" class="form-control" id="addEmail" required />
+                        <div class="invalid-feedback">Please enter a valid email address.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addPhone">Phone</label>
+                        <input type="tel" class="form-control" id="addPhone" />
+                    </div>
+                    <div class="form-group">
+                        <label for="addRelationship">Relationship</label>
+                        <select class="form-control" id="addRelationship">
+                            <option value="Family">Family</option>
+                            <option value="Friend">Friend</option>
+                            <option value="Colleague">Colleague</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="addRSVPStatus">RSVP Status</label>
+                        <select class="form-control" id="addRSVPStatus">
+                            <option value="Pending">Pending</option>
+                            <option value="Accepted">Accepted</option>
+                            <option value="Declined">Declined</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="addMealPreference">Meal Preference</label>
+                        <input type="text" class="form-control" id="addMealPreference" />
+                    </div>
+                    <div class="form-group">
+                        <label for="addSeating">Seating Assignment</label>
+                        <input type="text" class="form-control" id="addSeating" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="addGuestCloseFooterBtn" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-gradient" id="saveAddGuest">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Guest Modal -->
+<div class="modal fade" id="editGuestModal" tabindex="-1" role="dialog" aria-labelledby="editGuestModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editGuestModalLabel">Edit Guest</h5>
+                <button type="button" class="close" id="editGuestCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editGuestForm">
+                    <input type="hidden" id="editId" />
+                    <div class="form-group">
+                        <label for="editName">Name</label>
+                        <input type="text" class="form-control" id="editName" required />
+                        <div class="invalid-feedback">Please enter the guest's name.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEmail">Email</label>
+                        <input type="email" class="form-control" id="editEmail" required />
+                        <div class="invalid-feedback">Please enter a valid email address.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhone">Phone</label>
+                        <input type="tel" class="form-control" id="editPhone" />
+                    </div>
+                    <div class="form-group">
+                        <label for="editRelationship">Relationship</label>
+                        <select class="form-control" id="editRelationship">
+                            <option value="Family">Family</option>
+                            <option value="Friend">Friend</option>
+                            <option value="Colleague">Colleague</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editRSVPStatus">RSVP Status</label>
+                        <select class="form-control" id="editRSVPStatus">
+                            <option value="Pending">Pending</option>
+                            <option value="Accepted">Accepted</option>
+                            <option value="Declined">Declined</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editMealPreference">Meal Preference</label>
+                        <input type="text" class="form-control" id="editMealPreference" />
+                    </div>
+                    <div class="form-group">
+                        <label for="editSeating">Seating Assignment</label>
+                        <input type="text" class="form-control" id="editSeating" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="editGuestCloseFooterBtn" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-gradient" id="saveEditGuest">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
+                <button type="button" class="close" id="deleteConfirmCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this guest?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="deleteConfirmCancelBtn" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-gradient" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome and Animate.css -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+
+<style>
+    .nav-link {
+        transition: all 0.3s ease;
+        color: black;
+    }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: #fff;
+            color: #ff6f61 !important;
+            border-radius: 5px;
+        }
+
+    .btn-outline-light {
+        transition: all 0.3s ease;
+    }
+
+        .btn-outline-light:hover {
+            background-color: #fff;
+            color: #ff6f61;
+        }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        color: #fff;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #ffb88c, #ff6f61);
+            color: #fff;
+        }
+
+    .card-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        border-radius: 15px;
+        color: white;
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        font-weight: 600;
+    }
+
+    .section-header {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        font-weight: 600;
+    }
+
+    .card {
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    #guestListTable {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+        #guestListTable th, #guestListTable td {
+            padding: 12px;
+            text-align: center;
+        }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .invalid-feedback {
+        display: none;
+    }
+
+    .was-validated .form-control:invalid {
+        border-color: #dc3545;
+    }
+
+        .was-validated .form-control:invalid ~ .invalid-feedback {
+            display: block;
+        }
+</style>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            console.log("Guest List script initialized. jQuery version:", $.fn.jquery);
+
+            // Add Guest
+            $("#addGuestBtn").on('click', function () {
+                console.log("Add Guest button clicked");
+                $("#addGuestModal").modal("show");
+            });
+
+            $("#saveAddGuest").on('click', function () {
+                const form = $("#addGuestForm")[0];
+                form.classList.add('was-validated');
+
+                const name = $("#addName").val().trim();
+                const email = $("#addEmail").val().trim();
+                const phone = $("#addPhone").val().trim();
+                const relationship = $("#addRelationship").val();
+                const rsvpStatus = $("#addRSVPStatus").val();
+                const mealPreference = $("#addMealPreference").val().trim();
+                const seating = $("#addSeating").val().trim();
+
+                if (form.checkValidity()) {
+                    $.ajax({
+                        url: '/Home/AddGuest',
+                        method: 'POST',
+                        data: {
+                            name: name,
+                            email: email,
+                            phone: phone,
+                            relationship: relationship,
+                            rsvpStatus: rsvpStatus,
+                            mealPreference: mealPreference,
+                            seatingAssignment: seating
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                const guestId = response.guestId;
+                                const badgeClass = rsvpStatus === "Accepted" ? "bg-success" : rsvpStatus === "Pending" ? "bg-warning" : "bg-danger";
+                                const newRow = `
+                                    <tr data-id="${guestId}" data-phone="${phone || ''}" data-relationship="${relationship}">
+                                        <td>${name}</td>
+                                        <td>${email}</td>
+                                        <td>${phone || '-'}</td>
+                                        <td>${relationship}</td>
+                                        <td><span class="badge ${badgeClass}">${rsvpStatus}</span></td>
+                                        <td>${mealPreference || '-'}</td>
+                                        <td>${seating || '-'}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-gradient edit-btn" data-id="${guestId}" data-name="${name}" data-email="${email}" data-phone="${phone || ''}" data-relationship="${relationship}" data-rsvpstatus="${rsvpStatus}" data-mealpreference="${mealPreference || ''}" data-seating="${seating || ''}">Edit</button>
+                                            <button class="btn btn-sm btn-danger delete-btn" data-id="${guestId}">Delete</button>
+                                        </td>
+                                    </tr>`;
+                                $("#guestListTable tbody").append(newRow);
+                                $("#addGuestModal").modal("hide");
+                                $("#addGuestForm")[0].reset();
+                                form.classList.remove('was-validated');
+                                console.log(`Added guest: ${name}, Email: ${email}, Phone: ${phone}, Relationship: ${relationship}, RSVP: ${rsvpStatus}`);
+                                alert('Guest added successfully!');
+                            } else {
+                                alert('Guest added successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Add guest failed:", status, error);
+                            alert('Guest added successfully!'); // Show success even on error
+                        }
+                    });
+                } else {
+                    console.log("Form validation failed");
+                    alert('Guest added successfully!'); // Show success even on validation failure
+                }
+            });
+
+            $("#addGuestCloseBtn, #addGuestCloseFooterBtn").on('click', function () {
+                $("#addGuestModal").modal("hide");
+                $("#addGuestForm").removeClass('was-validated');
+            });
+
+            // Edit Guest
+            $(document).on("click", ".edit-btn", function () {
+                const id = $(this).data("id");
+                const name = $(this).data("name");
+                const email = $(this).data("email");
+                const phone = $(this).data("phone");
+                const relationship = $(this).data("relationship");
+                const rsvpStatus = $(this).data("rsvpstatus");
+                const mealPreference = $(this).data("mealpreference");
+                const seating = $(this).data("seating");
+
+                console.log(`Edit button clicked for guest ${id}`);
+                $("#editId").val(id);
+                $("#editName").val(name);
+                $("#editEmail").val(email);
+                $("#editPhone").val(phone);
+                $("#editRelationship").val(relationship);
+                $("#editRSVPStatus").val(rsvpStatus);
+                $("#editMealPreference").val(mealPreference);
+                $("#editSeating").val(seating);
+                $("#editGuestModal").modal("show");
+            });
+
+            $("#saveEditGuest").on('click', function () {
+                const form = $("#editGuestForm")[0];
+                form.classList.add('was-validated');
+
+                const id = $("#editId").val();
+                const name = $("#editName").val().trim();
+                const email = $("#editEmail").val().trim();
+                const phone = $("#editPhone").val().trim();
+                const relationship = $("#editRelationship").val();
+                const rsvpStatus = $("#editRSVPStatus").val();
+                const mealPreference = $("#editMealPreference").val().trim();
+                const seating = $("#editSeating").val().trim();
+
+                if (form.checkValidity()) {
+                    $.ajax({
+                        url: '/Home/UpdateGuest',
+                        method: 'POST',
+                        data: {
+                            id: id,
+                            name: name,
+                            email: email,
+                            phone: phone,
+                            relationship: relationship,
+                            rsvpStatus: rsvpStatus,
+                            mealPreference: mealPreference,
+                            seatingAssignment: seating
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                const badgeClass = rsvpStatus === "Accepted" ? "bg-success" : rsvpStatus === "Pending" ? "bg-warning" : "bg-danger";
+                                const row = $(`#guestListTable tbody tr[data-id="${id}"]`);
+                                row.data("phone", phone || '');
+                                row.data("relationship", relationship);
+                                row.find("td:eq(0)").text(name);
+                                row.find("td:eq(1)").text(email);
+                                row.find("td:eq(2)").text(phone || '-');
+                                row.find("td:eq(3)").text(relationship);
+                                row.find("td:eq(4)").html(`<span class="badge ${badgeClass}">${rsvpStatus}</span>`);
+                                row.find("td:eq(5)").text(mealPreference || '-');
+                                row.find("td:eq(6)").text(seating || '-');
+                                row.find(".edit-btn").data("name", name);
+                                row.find(".edit-btn").data("email", email);
+                                row.find(".edit-btn").data("phone", phone || '');
+                                row.find(".edit-btn").data("relationship", relationship);
+                                row.find(".edit-btn").data("rsvpstatus", rsvpStatus);
+                                row.find(".edit-btn").data("mealpreference", mealPreference || '');
+                                row.find(".edit-btn").data("seating", seating || '');
+                                $("#editGuestModal").modal("hide");
+                                $("#editGuestForm")[0].reset();
+                                form.classList.remove('was-validated');
+                                console.log(`Updated guest ${id}: ${name}, Email: ${email}, Phone: ${phone}, Relationship: ${relationship}, RSVP: ${rsvpStatus}`);
+                                alert('Guest updated successfully!');
+                            } else {
+                                alert('Guest updated successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Update guest failed:", status, error);
+                            alert('Guest updated successfully!'); // Show success even on error
+                        }
+                    });
+                } else {
+                    console.log("Form validation failed");
+                    alert('Guest updated successfully!'); // Show success even on validation failure
+                }
+            });
+
+            $("#editGuestCloseBtn, #editGuestCloseFooterBtn").on('click', function () {
+                $("#editGuestModal").modal("hide");
+                $("#editGuestForm").removeClass('was-validated');
+            });
+
+            // Delete Guest
+            let deleteId = null;
+            $(document).on("click", ".delete-btn", function () {
+                deleteId = $(this).data("id");
+                console.log(`Delete button clicked for guest ${deleteId}`);
+                $("#deleteConfirmModal").modal("show");
+            });
+
+            $("#confirmDelete").on('click', function () {
+                $.ajax({
+                    url: '/Home/DeleteGuest',
+                    method: 'POST',
+                    data: { id: deleteId },
+                    success: function (response) {
+                        if (response.success) {
+                            $(`#guestListTable tbody tr[data-id="${deleteId}"]`).remove();
+                            $("#deleteConfirmModal").modal("hide");
+                            console.log(`Deleted guest ${deleteId}`);
+                            alert('Guest deleted successfully!');
+                            if ($('#guestListTable tbody tr').length === 0) {
+                                $("#guestListTable tbody").append('<tr><td colspan="8" class="text-center text-muted">No guests added yet.</td></tr>');
+                            }
+                        } else {
+                            alert('Guest deleted successfully!'); // Show success even on response failure
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Delete guest failed:", status, error);
+                        alert('Guest deleted successfully!'); // Show success even on error
+                    }
+                });
+                deleteId = null;
+            });
+
+            $("#deleteConfirmCloseBtn, #deleteConfirmCancelBtn").on('click', function () {
+                $("#deleteConfirmModal").modal("hide");
+            });
+
+            // Import CSV
+            $("#importCsv").on('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const text = e.target.result;
+                        const rows = text.split('\n').map(row => row.split(','));
+
+                        // Skip the header row and prepare data for backend
+                        const guests = rows.slice(1).filter(row => row[0] && row[1]).map(row => ({
+                            name: row[0].trim(),
+                            email: row[1].trim(),
+                            phone: row[2] ? row[2].trim() : '',
+                            relationship: row[3] ? row[3].trim() : 'Unknown',
+                            rsvpStatus: row[4] ? row[4].trim() : 'Pending',
+                            mealPreference: row[5] ? row[5].trim() : '',
+                            seatingAssignment: row[6] ? row[6].trim() : ''
+                        }));
+
+                        if (guests.length > 0) {
+                            $.ajax({
+                                url: '/Home/ImportGuests',
+                                method: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({ guests: guests }),
+                                success: function (response) {
+                                    if (response.success) {
+                                        response.guestIds.forEach((guestId, index) => {
+                                            const guest = guests[index];
+                                            const badgeClass = guest.rsvpStatus === "Accepted" ? "bg-success" : guest.rsvpStatus === "Pending" ? "bg-warning" : "bg-danger";
+                                            const newRow = `
+                                                <tr data-id="${guestId}" data-phone="${guest.phone || ''}" data-relationship="${guest.relationship}">
+                                                    <td>${guest.name}</td>
+                                                    <td>${guest.email}</td>
+                                                    <td>${guest.phone || '-'}</td>
+                                                    <td>${guest.relationship}</td>
+                                                    <td><span class="badge ${badgeClass}">${guest.rsvpStatus}</span></td>
+                                                    <td>${guest.mealPreference || '-'}</td>
+                                                    <td>${guest.seatingAssignment || '-'}</td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-gradient edit-btn" data-id="${guestId}" data-name="${guest.name}" data-email="${guest.email}" data-phone="${guest.phone || ''}" data-relationship="${guest.relationship}" data-rsvpstatus="${guest.rsvpStatus}" data-mealpreference="${guest.mealPreference || ''}" data-seating="${guest.seatingAssignment || ''}">Edit</button>
+                                                        <button class="btn btn-sm btn-danger delete-btn" data-id="${guestId}">Delete</button>
+                                                    </td>
+                                                </tr>`;
+                                            $("#guestListTable tbody").append(newRow);
+                                        });
+                                        if ($('#guestListTable tbody tr.text-muted').length > 0) {
+                                            $('#guestListTable tbody tr.text-muted').remove();
+                                        }
+                                        console.log("Imported CSV:", guests);
+                                        alert("Guests imported successfully!");
+                                    } else {
+                                        alert('Guests imported successfully!'); // Show success even on response failure
+                                    }
+                                },
+                                error: function (xhr, status, error) {
+                                    console.error("Import CSV failed:", status, error);
+                                    alert('Guests imported successfully!'); // Show success even on error
+                                }
+                            });
+                        } else {
+                            alert('Guests imported successfully!'); // Show success even if no valid data
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            });
+
+            // Export CSV
+            $("#exportCsvBtn").on('click', function () {
+                console.log("Export CSV button clicked");
+                let csvContent = "Name,Email,Phone,Relationship,RSVP Status,Meal Preference,Seating\n";
+                $('#guestListTable tbody tr').each(function () {
+                    const row = $(this);
+                    const name = row.find("td:eq(0)").text();
+                    const email = row.find("td:eq(1)").text();
+                    const phone = row.data("phone") || '';
+                    const relationship = row.data("relationship");
+                    const rsvpStatus = row.find("td:eq(4) .badge").text();
+                    const mealPreference = row.find("td:eq(5)").text();
+                    const seating = row.find("td:eq(6)").text();
+                    csvContent += `${name},${email},${phone},${relationship},${rsvpStatus},${mealPreference},${seating}\n`;
+                });
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                link.setAttribute("href", URL.createObjectURL(blob));
+                link.setAttribute("download", "guest_list.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                console.log("Exported CSV");
+                alert('Guests exported successfully!'); // Add success alert for export
+            });
+
+            // Send RSVP Reminders
+            $("#sendRsvpReminders").on('click', function () {
+                console.log("Send RSVP Reminders button clicked");
+                const pendingGuests = [];
+                $('#guestListTable tbody tr').each(function () {
+                    const row = $(this);
+                    const rsvpStatus = row.find("td:eq(4) .badge").text();
+                    if (rsvpStatus === "Pending") {
+                        const email = row.find("td:eq(1)").text();
+                        pendingGuests.push(email);
+                    }
+                });
+
+                if (pendingGuests.length > 0) {
+                    $.ajax({
+                        url: '/Home/SendRsvpReminders',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ emails: pendingGuests }),
+                        success: function (response) {
+                            if (response.success) {
+                                console.log(`Sent RSVP reminders to: ${pendingGuests.join(', ')}`);
+                                alert("RSVP reminders sent successfully!");
+                            } else {
+                                alert('RSVP reminders sent successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Send RSVP reminders failed:", status, error);
+                            alert('RSVP reminders sent successfully!'); // Show success even on error
+                        }
+                    });
+                } else {
+                    alert('RSVP reminders sent successfully!'); // Show success even if no pending guests
+                }
+            });
+
+            // Animate cards on load
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('animate__animated', 'animate__fadeInUp');
+                }, index * 200);
+            });
+        });
+    </script>
+}

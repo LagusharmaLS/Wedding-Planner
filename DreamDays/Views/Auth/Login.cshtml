@@ -1,0 +1,129 @@
+﻿@model DreamDays.Models.LoginViewModel
+
+@{
+    ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-5" style="height: 100vh; background: linear-gradient(90deg, rgba(255, 111, 97, 0.2), rgba(255, 184, 140, 0.2));">
+    <div class="row justify-content-center align-items-center h-100">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow animate__animated animate__fadeIn">
+                <div class="card-header text-center card-gradient text-white">
+                    <h3 class="section-header">Login</h3>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(ViewBag.Message))
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @ViewBag.Message
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    <!-- Validation summary for all ModelState errors -->
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+                    <form asp-action="Login" method="post" id="loginForm">
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input asp-for="Email" class="form-control" placeholder="Enter your email (e.g., admin@dreamdays.com)" required />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" required />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input asp-for="RememberMe" class="form-check-input" />
+                            <label class="form-check-label">Remember me</label>
+                        </div>
+                        <button type="submit" class="btn btn-gradient w-100">Login</button>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <p class="mb-1">Don't have an account? <a asp-action="Register">Sign Up</a></p>
+                    <p>Forgot your password? <a asp-action="ForgotPassword">Reset Password</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome and Animate.css -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+
+<style>
+    .btn-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        color: #fff;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #ffb88c, #ff6f61);
+            color: #fff;
+        }
+
+    .card-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        background-size: cover;
+        border-radius: 15px;
+        color: white;
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .section-header {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .card {
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    .invalid-feedback {
+        display: none;
+    }
+
+    .was-validated .form-control:invalid {
+        border-color: #dc3545;
+    }
+
+        .was-validated .form-control:invalid ~ .invalid-feedback {
+            display: block;
+        }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            console.log("Login page initialized. jQuery version:", $.fn.jquery);
+
+            $('#loginForm').on('submit', function () {
+                const form = this;
+                form.classList.add('was-validated');
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    console.log("Form validation failed");
+                }
+            });
+        });
+    </script>
+}

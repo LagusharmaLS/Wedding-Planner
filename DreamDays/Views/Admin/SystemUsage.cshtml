@@ -1,0 +1,239 @@
+﻿@model DreamDays.Models.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "System Usage";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Sidebar -->
+<div class="d-flex">
+    @await Html.PartialAsync("_Sidebar")
+
+    <!-- Main Content -->
+    <div class="main-content" style="margin-left: 250px; width: calc(100% - 250px);">
+        <div class="container-fluid py-5" style="height: 100vh; background: linear-gradient(90deg, rgba(255, 111, 97, 0.2), rgba(255, 184, 140, 0.2));">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="card shadow mb-4 animate__animated animate__fadeIn">
+                        <div class="card-header text-center">
+                            <h3 class="section-header">System Usage</h3>
+                        </div>
+                        <div class="card-body">
+                            <h4 class="section-header mb-3">Usage Metrics</h4>
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="card bg-light shadow-sm">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">Total Users</h5>
+                                            <p class="card-text display-4">@Model.Users.Count</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light shadow-sm">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">Active Couples</h5>
+                                            <p class="card-text display-4">@Model.Couples.Count</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light shadow-sm">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">Active Vendors</h5>
+                                            <p class="card-text display-4">@Model.Vendors.Count</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <canvas id="activeUsersChart" height="200"></canvas>
+                                </div>
+                                <div class="col-md-6 mb-4">
+                                    <canvas id="apiCallsChart" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome, Animate.css, and Chart.js -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<style>
+    .bg-orange {
+        background-color: #ff6f61;
+        color: white;
+    }
+
+    .sidebar .navbar-brand {
+        font-size: 2.5rem;
+    }
+
+    .sidebar .nav-link {
+        transition: all 0.3s ease;
+        color: white;
+    }
+
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: #fff;
+            color: #ff6f61 !important;
+            border-radius: 5px;
+        }
+
+    .btn-outline-light {
+        transition: all 0.3s ease;
+        color: white;
+        border-color: white;
+    }
+
+        .btn-outline-light:hover {
+            background-color: #fff;
+            color: #ff6f61;
+        }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        color: #fff;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #ffb88c, #ff6f61);
+            color: #fff;
+        }
+
+    .card-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        background-size: cover;
+        border-radius: 15px;
+        color: white;
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .section-header {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .card {
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    .table th, .table td {
+        padding: 12px;
+        text-align: center;
+    }
+
+    .display-4 {
+        font-size: 2.5rem;
+        font-weight: 300;
+        line-height: 1.2;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            console.log("System usage initialized. jQuery version:", $.fn.jquery);
+
+            // Active Users Chart
+            const activeUsersCtx = document.getElementById('activeUsersChart').getContext('2d');
+            new Chart(activeUsersCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                    datasets: [{
+                        label: 'Active Users',
+                        data: [100, 150, 120, 180, 200],
+                        backgroundColor: 'rgba(255, 111, 97, 0.2)',
+                        borderColor: 'rgba(255, 111, 97, 1)',
+                        borderWidth: 1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Active Users Over Time' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y} users`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // API Calls Chart
+            const apiCallsCtx = document.getElementById('apiCallsChart').getContext('2d');
+            new Chart(apiCallsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                    datasets: [{
+                        label: 'API Calls',
+                        data: [500, 700, 600, 800, 900],
+                        backgroundColor: 'rgba(255, 184, 140, 0.2)',
+                        borderColor: 'rgba(255, 184, 140, 1)',
+                        borderWidth: 1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'API Calls Over Time' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y} calls`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // Initial animations
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('animate__animated', 'animate__fadeInUp');
+                }, index * 200);
+            });
+        });
+    </script>
+}

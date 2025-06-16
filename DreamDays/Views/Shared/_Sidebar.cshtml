@@ -1,0 +1,88 @@
+﻿<!-- Sidebar -->
+<div class="sidebar bg-orange" style="width: 250px; min-height: 100vh; position: fixed;">
+    <div class="p-3 d-flex flex-column" style="height: 100%;">
+        <a class="navbar-brand fw-bold f" href="/Home">
+            <i class="fas fa-heart me-2"></i><h2>DreamDays</h2>
+        </a>
+        <ul class="nav flex-column mt-4">
+            <li class="nav-item mb-5">
+                <a class="nav-link @(ViewData["ActivePage"] as string == "AdminDashboard" ? "active" : "")" asp-controller="Home" asp-action="AdminDashboard">
+                    <i class="fas fa-tachometer-alt me-1"></i> Dashboard Overview
+                </a>
+            </li>
+            <li class="nav-item mb-5">
+                <a class="nav-link @(ViewData["ActivePage"] as string == "CoupleManagement" ? "active" : "")" asp-controller="Home" asp-action="CoupleManagement">
+                    <i class="fas fa-users me-1"></i> Couple Management
+                </a>
+            </li>
+            <li class="nav-item mb-5">
+                <a class="nav-link @(ViewData["ActivePage"] as string == "VendorsManagement" ? "active" : "")" asp-controller="Home" asp-action="VendorsManagement">
+                    <i class="fas fa-store me-1"></i> Vendors Management
+                </a>
+            </li>
+            <li class="nav-item mb-5">
+                <a class="nav-link @(ViewData["ActivePage"] as string == "SystemUsage" ? "active" : "")" asp-controller="Home" asp-action="SystemUsage">
+                    <i class="fas fa-chart-line me-1"></i> System Usage
+                </a>
+            </li>
+            <li class="nav-item mb-5">
+                <a class="nav-link @(ViewData["ActivePage"] as string == "Reports" ? "active" : "")" asp-controller="Home" asp-action="Reports">
+                    <i class="fas fa-file-alt me-1"></i> Reports
+                </a>
+            </li>
+            <li class="nav-item mt-auto">
+                <a class="nav-link btn btn-outline-light px-3 logout-link" href="#" onclick="showLogoutModal(event)">
+                    <i class="fas fa-sign-out-alt me-1"></i> Log Out
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+                <button type="button" class="close" onclick="hideLogoutModal()">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to log out?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="hideLogoutModal()">Cancel</button>
+                <a href="@Url.Action("Logout", "Home")" class="btn btn-gradient">Confirm</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include the script directly in the partial view -->
+<script>
+    function showLogoutModal(event) {
+        event.preventDefault();
+        console.log("Showing logout modal");
+        const modal = document.getElementById('logoutModal');
+        modal.classList.add('show');
+        modal.style.display = 'block';
+        document.body.classList.add('modal-open');
+        const backdrop = document.createElement('div');
+        backdrop.classList.add('modal-backdrop', 'fade', 'show');
+        document.body.appendChild(backdrop);
+    }
+
+    function hideLogoutModal() {
+        console.log("Hiding logout modal");
+        const modal = document.getElementById('logoutModal');
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+            backdrop.remove();
+        }
+    }
+</script>

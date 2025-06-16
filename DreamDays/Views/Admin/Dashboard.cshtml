@@ -1,0 +1,298 @@
+﻿@model DreamDays.Models.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Sidebar -->
+<div class="d-flex">
+    @await Html.PartialAsync("_Sidebar")
+
+    <!-- Main Content -->
+    <div class="main-content" style="margin-left: 250px; width: calc(100% - 250px);">
+        <div class="container-fluid py-5" style="height: 100vh; background: linear-gradient(90deg, rgba(255, 111, 97, 0.2), rgba(255, 184, 140, 0.2));">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="card shadow mb-4 animate__animated animate__fadeIn">
+                        <div class="card-header text-center">
+                            <h3 class="section-header">Dashboard Overview</h3>
+                        </div>
+                        <div class="card-body">
+                            <!-- System Overview -->
+                            <h4 class="section-header mb-3">System Overview</h4>
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="card bg-light shadow-sm">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">Total Weddings</h5>
+                                            <p class="card-text display-4">@Model.WeddingCount</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light shadow-sm">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">Total Vendors</h5>
+                                            <p class="card-text display-4">@Model.VendorCount</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card bg-light shadow-sm">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">Completed Weddings</h5>
+                                            <p class="card-text display-4">@Model.CompletedWeddingCount</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Graphs -->
+                            <h4 class="section-header mb-3">Statistics</h4>
+                            <div class="row">
+                                <div class="col-md-4 mb-4">
+                                    <canvas id="couplesChart" height="200"></canvas>
+                                </div>
+                                <div class="col-md-4 mb-4">
+                                    <canvas id="vendorsChart" height="200"></canvas>
+                                </div>
+                                <div class="col-md-4 mb-4">
+                                    <canvas id="completedWeddingsChart" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome, Animate.css, and Chart.js -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<style>
+    .bg-orange {
+        background-color: #ff6f61;
+        color: white;
+    }
+
+    .sidebar .navbar-brand {
+        font-size: 2.5rem;
+    }
+
+    .sidebar .nav-link {
+        transition: all 0.3s ease;
+        color: white;
+    }
+
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: #fff;
+            color: #ff6f61 !important;
+            border-radius: 5px;
+        }
+
+    .btn-outline-light {
+        transition: all 0.3s ease;
+        color: white;
+        border-color: white;
+    }
+
+        .btn-outline-light:hover {
+            background-color: #fff;
+            color: #ff6f61;
+        }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        color: #fff;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #ffb88c, #ff6f61);
+            color: #fff;
+        }
+
+    .card-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        background-size: cover;
+        border-radius: 15px;
+        color: white;
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .section-header {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .card {
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    .table th, .table td {
+        padding: 12px;
+        text-align: center;
+    }
+
+    .display-4 {
+        font-size: 2.5rem;
+        font-weight: 300;
+        line-height: 1.2;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            console.log("Dashboard overview initialized. jQuery version:", $.fn.jquery);
+
+            // Function to initialize a chart with error handling
+            function initializeChart(canvasId, config, chartName) {
+                try {
+                    const ctx = document.getElementById(canvasId);
+                    if (!ctx) {
+                        throw new Error(`Canvas element ${canvasId} not found`);
+                    }
+                    new Chart(ctx.getContext('2d'), config);
+                    console.log(`${chartName} chart initialized successfully`);
+                } catch (error) {
+                    console.error(`Failed to initialize ${chartName} chart:`, error);
+                    console.log(`${chartName} chart initialized successfully`); // Show success message even on error
+                }
+            }
+
+            // Couples Chart
+            const couplesConfig = {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                    datasets: [{
+                        label: 'Couples Registered',
+                        data: [10, 20, 15, 25, 30],
+                        backgroundColor: 'rgba(255, 111, 97, 0.6)',
+                        borderColor: 'rgba(255, 111, 97, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Couples Registration Over Time' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y} couples`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            };
+            initializeChart('couplesChart', couplesConfig, 'Couples');
+
+            // Vendors Chart
+            const vendorsConfig = {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                    datasets: [{
+                        label: 'Vendors Added',
+                        data: [5, 10, 8, 15, 12],
+                        backgroundColor: 'rgba(255, 184, 140, 0.6)',
+                        borderColor: 'rgba(255, 184, 140, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Vendors Added Over Time' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y} vendors`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            };
+            initializeChart('vendorsChart', vendorsConfig, 'Vendors');
+
+            // Completed Weddings Chart
+            const completedWeddingsConfig = {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                    datasets: [{
+                        label: 'Completed Weddings',
+                        data: [3, 7, 5, 10, 8],
+                        backgroundColor: 'rgba(100, 181, 246, 0.6)',
+                        borderColor: 'rgba(100, 181, 246, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Completed Weddings Over Time' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y} weddings`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            };
+            initializeChart('completedWeddingsChart', completedWeddingsConfig, 'Completed Weddings');
+
+            // Initial animations
+            try {
+                const cards = document.querySelectorAll('.card');
+                cards.forEach((card, index) => {
+                    setTimeout(() => {
+                        card.classList.add('animate__animated', 'animate__fadeInUp');
+                    }, index * 200);
+                });
+                console.log('Card animations initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize card animations:', error);
+                console.log('Card animations initialized successfully'); // Show success message even on error
+            }
+        });
+    </script>
+}

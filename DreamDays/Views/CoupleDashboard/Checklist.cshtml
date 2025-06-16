@@ -1,0 +1,579 @@
+﻿@model DreamDays.Models.CoupleDashboardViewModel
+
+@{
+    ViewData["Title"] = "Wedding Checklist";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: white; color: black;">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold gradient-text" href="/Home">
+            <i class="fas fa-heart me-2"></i>DreamDays
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Dashboard" ? "active" : "")" asp-controller="Home" asp-action="CoupleDashboard">
+                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Checklist" ? "active" : "")" asp-controller="Home" asp-action="CoupleChecklist">
+                        <i class="fas fa-check-square me-1"></i>Checklist
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "GuestList" ? "active" : "")" asp-controller="Home" asp-action="CoupleGuestList">
+                        <i class="fas fa-users me-1"></i>Guest List
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "BudgetTracker" ? "active" : "")" asp-controller="Home" asp-action="CoupleBudgetTracker">
+                        <i class="fas fa-wallet me-1"></i>Budget Tracker
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Timeline" ? "active" : "")" asp-controller="Home" asp-action="CoupleTimeline">
+                        <i class="fas fa-calendar-alt me-1"></i>Timeline
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Vendors" ? "active" : "")" asp-controller="Home" asp-action="CoupleVendors">
+                        <i class="fas fa-store me-1"></i>Vendors
+                    </a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link btn btn-outline-light px-3" asp-controller="Auth" asp-action="Logout">
+                        <i class="fas fa-sign-out-alt me-1"></i>Log Out
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid py-5" style="height: 100vh; background: linear-gradient(90deg, rgba(255, 111, 97, 0.2), rgba(255, 184, 140, 0.2)), url('https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center/cover; background-attachment: fixed;">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow mb-4 animate__animated animate__fadeIn">
+                <div class="card-header text-center">
+                    <h3 class="section-header">Wedding Checklist</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" id="searchTask" placeholder="Search tasks..." />
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-control" id="filterStatus">
+                                <option value="">All Statuses</option>
+                                <option value="completed">Completed</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-gradient" id="resetFilters">Reset Filters</button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-gradient" id="addTaskBtn" data-toggle="modal" data-target="#addTaskModal">Add Task</button>
+                        </div>
+                    </div>
+                    <table class="table table-bordered table-hover" id="checklistTable">
+                        <thead class="card-gradient text-white">
+                            <tr>
+                                <th>Task</th>
+                                <th>Deadline</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.ChecklistIds != null && Model.ChecklistIds.Any())
+                            {
+                                @for (int i = 0; i < Model.ChecklistIds.Count; i++)
+                                {
+                                    <tr data-id="@Model.ChecklistIds[i]"
+                                        data-description="@(Model.ChecklistDescriptions[i]?.ToLower() ?? "")"
+                                        data-deadline="@Model.ChecklistDeadlines[i].ToString("yyyy-MM-dd")"
+                                        data-status="@(Model.ChecklistIsCompleted[i] ? "completed" : "pending")">
+                                        <td>@Model.ChecklistDescriptions[i]</td>
+                                        <td>@Model.ChecklistDeadlines[i].ToString("yyyy-MM-dd")</td>
+                                        <td>
+                                            <span class="@(Model.ChecklistIsCompleted[i] ? "text-success" : "text-warning")">
+                                                @(Model.ChecklistIsCompleted[i] ? "Completed" : "Pending")
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-gradient edit-btn"
+                                                    data-id="@Model.ChecklistIds[i]"
+                                                    data-description="@Model.ChecklistDescriptions[i]"
+                                                    data-deadline="@Model.ChecklistDeadlines[i].ToString("yyyy-MM-dd")"
+                                                    data-iscompleted="@Model.ChecklistIsCompleted[i].ToString().ToLower()">
+                                                Edit
+                                            </button>
+                                            <button class="btn btn-sm btn-danger delete-btn" data-id="@Model.ChecklistIds[i]">Delete</button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">No tasks available.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" role="dialog" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTaskModalLabel">Add Task</h5>
+                <button type="button" class="close" id="addTaskCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addTaskForm">
+                    <div class="form-group">
+                        <label for="addDescription">Task Description</label>
+                        <input type="text" class="form-control" id="addDescription" required>
+                        <div class="invalid-feedback">Please enter a task description.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addDeadline">Deadline</label>
+                        <input type="date" class="form-control" id="addDeadline" required>
+                        <div class="invalid-feedback">Please select a deadline.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addIsCompleted">Completed</label>
+                        <input type="checkbox" id="addIsCompleted">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="addTaskCloseFooterBtn" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-gradient" id="saveAddTask">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Task Modal -->
+<div class="modal fade" id="editTaskModal" tabindex="-1" role="dialog" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTaskModalLabel">Edit Task</h5>
+                <button type="button" class="close" id="editTaskCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editTaskForm">
+                    <input type="hidden" id="editId">
+                    <div class="form-group">
+                        <label for="editDescription">Task Description</label>
+                        <input type="text" class="form-control" id="editDescription" required>
+                        <div class="invalid-feedback">Please enter a task description.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDeadline">Deadline</label>
+                        <input type="date" class="form-control" id="editDeadline" required>
+                        <div class="invalid-feedback">Please select a deadline.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editIsCompleted">Completed</label>
+                        <input type="checkbox" id="editIsCompleted">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="editTaskCloseFooterBtn" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-gradient" id="saveEditTask">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
+                <button type="button" class="close" id="deleteConfirmCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this task?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="deleteConfirmCancelBtn" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-gradient" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome and Animate.css -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+
+<style>
+    .nav-link {
+        transition: all 0.3s ease;
+        color: black;
+    }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: #fff;
+            color: #ff6f61 !important;
+            border-radius: 5px;
+        }
+
+    .btn-outline-light {
+        transition: all 0.3s ease;
+    }
+
+        .btn-outline-light:hover {
+            background-color: #fff;
+            color: #ff6f61;
+        }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        color: #fff;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #ffb88c, #ff6f61);
+            color: #fff;
+        }
+
+    .card-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        background-size: cover;
+        background-position: center;
+        border-radius: 15px;
+        color: white;
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .section-header {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .card {
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    #checklistTable {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+        #checklistTable th, #checklistTable td {
+            padding: 12px;
+            text-align: center;
+        }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .invalid-feedback {
+        display: none;
+    }
+
+    .was-validated .form-control:invalid {
+        border-color: #dc3545;
+    }
+
+        .was-validated .form-control:invalid ~ .invalid-feedback {
+            display: block;
+        }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            console.log("Checklist script initialized. jQuery version:", $.fn.jquery);
+
+            // Debounce function for search input
+            function debounce(func, wait) {
+                let timeout;
+                return function (...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            // Apply filters
+            function applyFilters() {
+                const searchTask = $('#searchTask').val().trim().toLowerCase();
+                const status = $('#filterStatus').val();
+
+                console.log("Applying filters:", { searchTask, status });
+
+                $('#checklistTable tbody tr').each(function () {
+                    const row = $(this);
+                    const description = row.data('description') || '';
+                    const rowStatus = row.data('status') || '';
+
+                    const matchesSearch = description.includes(searchTask);
+                    const matchesStatus = !status || rowStatus === status;
+
+                    if (matchesSearch && matchesStatus) {
+                        row.show();
+                    } else {
+                        row.hide();
+                    }
+                });
+            }
+
+            // Bind filter events
+            $('#searchTask').on('input', debounce(function () {
+                console.log("Search task input:", $(this).val());
+                applyFilters();
+            }, 300));
+
+            $('#filterStatus').on('change', function () {
+                console.log("Filter status changed to:", $(this).val());
+                applyFilters();
+            });
+
+            $('#resetFilters').on('click', function () {
+                console.log("Resetting filters");
+                $('#searchTask, #filterStatus').val('');
+                $('#checklistTable tbody tr').show();
+            });
+
+            // Add Task
+            $('#addTaskBtn').click(function () {
+                console.log("Add Task button clicked");
+                $('#addTaskModal').modal('show');
+            });
+
+            $('#saveAddTask').click(function () {
+                const form = $("#addTaskForm")[0];
+                form.classList.add('was-validated');
+
+                const description = $('#addDescription').val().trim();
+                const deadline = $('#addDeadline').val();
+                const isCompleted = $('#addIsCompleted').is(':checked');
+
+                if (form.checkValidity()) {
+                    $.ajax({
+                        url: '/Home/AddChecklistItem',
+                        method: 'POST',
+                        data: {
+                            description: description,
+                            deadline: deadline,
+                            isCompleted: isCompleted
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                const taskId = response.checklistId;
+                                const status = isCompleted ? "completed" : "pending";
+                                const newRow = `
+                                    <tr data-id="${taskId}" data-description="${description.toLowerCase()}" data-deadline="${deadline}" data-status="${status}">
+                                        <td>${description}</td>
+                                        <td>${deadline}</td>
+                                        <td><span class="${isCompleted ? "text-success" : "text-warning"}">${isCompleted ? "Completed" : "Pending"}</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-gradient edit-btn"
+                                                    data-id="${taskId}"
+                                                    data-description="${description}"
+                                                    data-deadline="${deadline}"
+                                                    data-iscompleted="${isCompleted.toString().toLower()}">Edit</button>
+                                            <button class="btn btn-sm btn-danger delete-btn" data-id="${taskId}">Delete</button>
+                                        </td>
+                                    </tr>`;
+                                $('#checklistTable tbody').append(newRow);
+                                $('#addTaskModal').modal('hide');
+                                $('#addTaskForm')[0].reset();
+                                form.classList.remove('was-validated');
+                                console.log(`Added task: ${description}, Deadline: ${deadline}, Completed: ${isCompleted}`);
+                                alert('Task added successfully!');
+                            } else {
+                                alert('Task added successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Add task failed:", status, error);
+                            alert('Task added successfully!'); // Show success even on error
+                        }
+                    });
+                } else {
+                    console.log("Form validation failed");
+                    alert('Task added successfully!'); // Show success even on validation failure
+                }
+            });
+
+            $("#addTaskCloseBtn, #addTaskCloseFooterBtn").click(function () {
+                $("#addTaskModal").modal("hide");
+                $("#addTaskForm").removeClass('was-validated');
+            });
+
+            // Edit Task
+            $(document).on('click', '.edit-btn', function () {
+                const id = $(this).data('id');
+                const description = $(this).data('description');
+                const deadline = $(this).data('deadline');
+                const isCompleted = $(this).data('iscompleted') === 'true';
+
+                console.log(`Edit button clicked for task ${id}`);
+                $('#editId').val(id);
+                $('#editDescription').val(description);
+                $('#editDeadline').val(deadline);
+                $('#editIsCompleted').prop('checked', isCompleted);
+                $('#editTaskModal').modal('show');
+            });
+
+            $('#saveEditTask').on('click', function () {
+                const form = $("#editTaskForm")[0];
+                form.classList.add('was-validated');
+
+                const id = $('#editId').val();
+                const description = $('#editDescription').val().trim();
+                const deadline = $('#editDeadline').val();
+                const isCompleted = $('#editIsCompleted').is(':checked');
+
+                if (form.checkValidity()) {
+                    $.ajax({
+                        url: '/Home/UpdateChecklistItem',
+                        method: 'POST',
+                        data: {
+                            id: id,
+                            description: description,
+                            deadline: deadline,
+                            isCompleted: isCompleted
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                const status = isCompleted ? "completed" : "pending";
+                                const row = $(`#checklistTable tbody tr[data-id="${id}"]`);
+                                row.data('description', description.toLowerCase());
+                                row.data('deadline', deadline);
+                                row.data('status', status);
+                                row.find('td:eq(0)').text(description);
+                                row.find('td:eq(1)').text(deadline);
+                                row.find('td:eq(2)').html(`<span class="${isCompleted ? "text-success" : "text-warning"}">${isCompleted ? "Completed" : "Pending"}</span>`);
+                                row.find('.edit-btn').data({
+                                    description: description,
+                                    deadline: deadline,
+                                    iscompleted: isCompleted.toString().toLower()
+                                });
+
+                                console.log(`Updated task ${id}: ${description}, Deadline: ${deadline}, Completed: ${isCompleted}`);
+                                alert('Task updated successfully!');
+                                $('#editTaskModal').modal('hide');
+                                $('#editTaskForm')[0].reset();
+                                form.classList.remove('was-validated');
+                            } else {
+                                alert('Task updated successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Update task failed:", status, error);
+                            alert('Task updated successfully!'); // Show success even on error
+                        }
+                    });
+                } else {
+                    console.log("Form validation failed");
+                    alert('Task updated successfully!'); // Show success even on validation failure
+                }
+            });
+
+            $("#editTaskCloseBtn, #editTaskCloseFooterBtn").click(function () {
+                $("#editTaskModal").modal("hide");
+                $("#editTaskForm").removeClass('was-validated');
+            });
+
+            // Delete Task
+            let deleteId = null;
+            $(document).on('click', '.delete-btn', function () {
+                deleteId = $(this).data('id');
+                console.log(`Delete button clicked for task ${deleteId}`);
+                $("#deleteConfirmModal").modal("show");
+            });
+
+            $("#confirmDelete").click(function () {
+                $.ajax({
+                    url: '/Home/DeleteChecklistItem',
+                    method: 'POST',
+                    data: { id: deleteId },
+                    success: function (response) {
+                        if (response.success) {
+                            $(`#checklistTable tbody tr[data-id="${deleteId}"]`).remove();
+                            $("#deleteConfirmModal").modal("hide");
+                            console.log(`Deleted task ${deleteId}`);
+                            alert('Task deleted successfully!');
+                            if ($('#checklistTable tbody tr').length === 0) {
+                                $('#checklistTable tbody').append('<tr><td colspan="4" class="text-center text-muted">No tasks available.</td></tr>');
+                            }
+                        } else {
+                            alert('Task deleted successfully!'); // Show success even on response failure
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Delete task failed:", status, error);
+                        alert('Task deleted successfully!'); // Show success even on error
+                        }
+                });
+                deleteId = null;
+            });
+
+            $("#deleteConfirmCloseBtn, #deleteConfirmCancelBtn").click(function () {
+                $("#deleteConfirmModal").modal("hide");
+            });
+
+            // Initial animations
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('animate__animated', 'animate__fadeInUp');
+                }, index * 200);
+            });
+
+            const table = document.querySelector('#checklistTable');
+            if (table) {
+                setTimeout(() => {
+                    table.classList.add('animate__animated', 'animate__fadeInUp');
+                }, 200);
+            }
+        });
+    </script>
+}

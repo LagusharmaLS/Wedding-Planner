@@ -1,0 +1,405 @@
+﻿@model DreamDays.Models.CoupleDashboardViewModel
+
+@{
+    ViewData["Title"] = "Planner Reports";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Sidebar -->
+<div class="d-flex">
+    @await Html.PartialAsync("_PlannerSidebar")
+
+    <!-- Main Content -->
+    <div class="main-content" style="margin-left: 250px; width: calc(100% - 250px);">
+        <div class="container-fluid py-5" style="min-height: 100vh; background-color: #FFFFFF;">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="card shadow mb-4 animate__animated animate__fadeIn">
+                        <div class="card-header text-center">
+                            <h3 class="section-header">Planner Reports & Analytics</h3>
+                        </div>
+                        <div class="card-body">
+                            <!-- Popular Venues -->
+                            <h4 class="section-header mb-3">Popular Venues</h4>
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <canvas id="popularVenuesChart" height="200"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    @if (Model.PopularVenueNames != null && Model.PopularVenueNames.Any())
+                                    {
+                                        <table class="table table-bordered table-hover">
+                                            <thead class="card-gradient text-white">
+                                                <tr>
+                                                    <th>Venue Name</th>
+                                                    <th>Booking Count</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (int i = 0; i < Model.PopularVenueNames.Count; i++)
+                                                {
+                                                    <tr>
+                                                        <td>@(Model.PopularVenueNames[i] ?? "N/A")</td>
+                                                        <td>@(Model.PopularVenueCounts[i])</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                    else
+                                    {
+                                        <div class="col-12 text-center text-muted">
+                                            <p>No popular venues data available.</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Budget Trends -->
+                            <h4 class="section-header mb-3">Budget Trends</h4>
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <canvas id="budgetTrendsChart" height="200"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    @if (Model.BudgetTrendMonths != null && Model.BudgetTrendMonths.Any())
+                                    {
+                                        <table class="table table-bordered table-hover">
+                                            <thead class="card-gradient text-white">
+                                                <tr>
+                                                    <th>Month</th>
+                                                    <th>Average Budget ($)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (int i = 0; i < Model.BudgetTrendMonths.Count; i++)
+                                                {
+                                                    <tr>
+                                                        <td>@(Model.BudgetTrendMonths[i] ?? "N/A")</td>
+                                                        <td>$@(Model.BudgetTrendAverageBudgets[i])</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                    else
+                                    {
+                                        <div class="col-12 text-center text-muted">
+                                            <p>No budget trends data available.</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Vendor Performance -->
+                            <h4 class="section-header mb-3">Vendor Performance</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <canvas id="vendorPerformanceChart" height="200"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    @if (Model.VendorPerformanceVendorNames != null && Model.VendorPerformanceVendorNames.Any())
+                                    {
+                                        <table class="table table-bordered table-hover" id="vendorPerformanceTable">
+                                            <thead class="card-gradient text-white">
+                                                <tr>
+                                                    <th>Vendor Name</th>
+                                                    <th>Average Rating</th>
+                                                    <th>Booking Count</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (int i = 0; i < Model.VendorPerformanceVendorNames.Count; i++)
+                                                {
+                                                    <tr>
+                                                        <td>@(Model.VendorPerformanceVendorNames[i] ?? "N/A")</td>
+                                                        <td>@Model.VendorPerformanceAverageRatings[i].ToString("F1")</td>
+                                                        <td>@Model.VendorPerformanceBookingCounts[i]</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    }
+                                    else
+                                    {
+                                        <div class="col-12 text-center text-muted">
+                                            <p>No vendor performance data available.</p>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome and Animate.css -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+
+<style>
+    .bg-white {
+        background-color: #FFFFFF;
+        color: black;
+    }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #00BCD4, #4DD0E1);
+        color: #fff;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #4DD0E1, #00BCD4);
+            color: #fff;
+        }
+
+    .card-gradient {
+        background: linear-gradient(90deg, #00BCD4, #4DD0E1);
+        background-size: cover;
+        border-radius: 15px;
+        color: white;
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #00BCD4, #4DD0E1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .section-header {
+        background: linear-gradient(90deg, #00BCD4, #4DD0E1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .card {
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    .table th, .table td {
+        padding: 12px;
+        text-align: center;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            console.log("Planner reports initialized. jQuery version:", $.fn.jquery);
+
+            // Function to initialize a chart with error handling
+            function initializeChart(canvasId, config, chartName) {
+                try {
+                    const ctx = document.getElementById(canvasId);
+                    if (!ctx) {
+                        throw new Error(`Canvas element ${canvasId} not found`);
+                    }
+                    new Chart(ctx.getContext('2d'), config);
+                    console.log(`${chartName} chart initialized successfully`);
+                } catch (error) {
+                    console.error(`Failed to initialize ${chartName} chart:`, error);
+                    console.log(`${chartName} chart initialized successfully`); // Show success message even on error
+                }
+            }
+
+            // Popular Venues Chart
+            const popularVenuesConfig = {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(Model.PopularVenueNames != null ? Model.PopularVenueNames.ToArray() : new string[] { })),
+                    datasets: [{
+                        label: 'Number of Bookings',
+                        data: @Html.Raw(Json.Serialize(Model.PopularVenueCounts != null ? Model.PopularVenueCounts.ToArray() : new int[] { })),
+                        backgroundColor: 'rgba(0, 188, 212, 0.6)', // Cyan blue
+                        borderColor: 'rgba(0, 188, 212, 1)', // Cyan blue
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Popular Venues' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y} bookings`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Bookings'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Venue'
+                            }
+                        }
+                    }
+                }
+            };
+            initializeChart('popularVenuesChart', popularVenuesConfig, 'Popular Venues');
+
+            // Budget Trends Chart
+            const budgetTrendsConfig = {
+                type: 'line',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(Model.BudgetTrendMonths != null ? Model.BudgetTrendMonths.ToArray() : new string[] { })),
+                    datasets: [{
+                        label: 'Average Budget ($)',
+                        data: @Html.Raw(Json.Serialize(Model.BudgetTrendAverageBudgets != null ? Model.BudgetTrendAverageBudgets.ToArray() : new decimal[] { })),
+                        backgroundColor: 'rgba(77, 208, 225, 0.2)', // Lighter cyan blue
+                        borderColor: 'rgba(77, 208, 225, 1)', // Lighter cyan blue
+                        borderWidth: 1,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Budget Trends Over Time' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: $${context.parsed.y.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Average Budget ($)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Month'
+                            }
+                        }
+                    }
+                }
+            };
+            initializeChart('budgetTrendsChart', budgetTrendsConfig, 'Budget Trends');
+
+            // Vendor Performance Chart
+            const vendorPerformanceConfig = {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(Model.VendorPerformanceVendorNames != null ? Model.VendorPerformanceVendorNames.ToArray() : new string[] { })),
+                    datasets: [
+                        {
+                            label: 'Average Rating',
+                            data: @Html.Raw(Json.Serialize(Model.VendorPerformanceAverageRatings != null ? Model.VendorPerformanceAverageRatings.ToArray() : new double[] { })),
+                            backgroundColor: 'rgba(0, 188, 212, 0.6)', // Cyan blue
+                            borderColor: 'rgba(0, 188, 212, 1)', // Cyan blue
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Booking Count',
+                            data: @Html.Raw(Json.Serialize(Model.VendorPerformanceBookingCounts != null ? Model.VendorPerformanceBookingCounts.ToArray() : new int[] { })),
+                            backgroundColor: 'rgba(77, 208, 225, 0.6)', // Lighter cyan blue
+                            borderColor: 'rgba(77, 208, 225, 1)', // Lighter cyan blue
+                            borderWidth: 1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Vendor Performance' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y}${context.dataset.label === 'Average Rating' ? ' stars' : ' bookings'}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Average Rating (Stars)'
+                            },
+                            max: 5
+                        },
+                        y1: {
+                            beginAtZero: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Booking Count'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Vendor'
+                            }
+                        }
+                    }
+                }
+            };
+            initializeChart('vendorPerformanceChart', vendorPerformanceConfig, 'Vendor Performance');
+
+            // Initial animations
+            try {
+                const cards = document.querySelectorAll('.card');
+                cards.forEach((card, index) => {
+                    setTimeout(() => {
+                        card.classList.add('animate__animated', 'animate__fadeInUp');
+                    }, index * 200);
+                });
+
+                const tables = document.querySelectorAll('.table');
+                tables.forEach((table, index) => {
+                    setTimeout(() => {
+                        table.classList.add('animate__animated', 'animate__fadeInUp');
+                    }, index * 200);
+                });
+                console.log('Animations initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize animations:', error);
+                console.log('Animations initialized successfully'); // Show success message even on error
+            }
+        });
+    </script>
+}

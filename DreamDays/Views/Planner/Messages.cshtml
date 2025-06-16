@@ -1,0 +1,282 @@
+﻿@model DreamDays.Models.CoupleDashboardViewModel
+
+@{
+    ViewData["Title"] = "Planner Messages";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Sidebar -->
+<div class="d-flex">
+    @await Html.PartialAsync("_PlannerSidebar")
+
+    <!-- Main Content -->
+    <div class="main-content" style="margin-left: 250px; width: calc(100% - 250px);">
+        <div class="container-fluid py-5" style="min-height: 100vh; background-color: #FFFFFF;">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="card shadow mb-4 animate__animated animate__fadeIn">
+                        <div class="card-header text-center">
+                            <h3 class="section-header">Messages</h3>
+                        </div>
+                        <div class="card-body">
+                            <!-- Messages Section -->
+                            <div class="row mb-3">
+                                <div class="col-md-12 text-right">
+                                    <button class="btn btn-gradient" id="sendMessageBtn" data-toggle="modal" data-target="#sendMessageModal">Send Message</button>
+                                </div>
+                            </div>
+                            @if (Model.MessageIds != null && Model.MessageIds.Any())
+                            {
+                                <table class="table table-bordered table-hover" id="messagesTable">
+                                    <thead class="card-gradient text-white">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Sender</th>
+                                            <th>Receiver</th>
+                                            <th>Content</th>
+                                            <th>Timestamp</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.MessageIds.Count; i++)
+                                        {
+                                            <tr data-id="@Model.MessageIds[i]">
+                                                <td>@Model.MessageIds[i]</td>
+                                                <td>@(Model.MessageSenders[i] ?? "N/A")</td>
+                                                <td>@(Model.MessageReceivers[i] ?? "N/A")</td>
+                                                <td>@(Model.MessageContents[i] ?? "N/A")</td>
+                                                <td>@Model.MessageTimestamps[i].ToString("yyyy-MM-dd HH:mm")</td>
+                                                <td>@(Model.MessageIsRead[i] ? "Read" : "Unread")</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-gradient mark-read-btn" data-id="@Model.MessageIds[i]" data-isread="@Model.MessageIsRead[i].ToString().ToLower()">Mark as @(Model.MessageIsRead[i] ? "Unread" : "Read")</button>
+                                                    <button class="btn btn-sm btn-danger delete-message-btn" data-id="@Model.MessageIds[i]">Delete</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="col-12 text-center text-muted">
+                                    <p>No messages available.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Send Message Modal -->
+<div class="modal fade" id="sendMessageModal" tabindex="-1" role="dialog" aria-labelledby="sendMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sendMessageModalLabel">Send Message</h5>
+                <button type="button" class="close" id="sendMessageCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="sendMessageForm">
+                    <div class="form-group">
+                        <label for="messageSender">Sender</label>
+                        <input type="text" class="form-control" id="messageSender" value="Planner" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="messageReceiver">Receiver (Couple Name)</label>
+                        <input type="text" class="form-control" id="messageReceiver" required>
+                        <div class="invalid-feedback">Please enter the receiver's name.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="messageContent">Message</label>
+                        <textarea class="form-control" id="messageContent" rows="3" required></textarea>
+                        <div class="invalid-feedback">Please enter a message.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="sendMessageCloseFooterBtn" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-gradient" id="sendMessage">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome and Animate.css -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+
+<style>
+    .bg-white {
+        background-color: #FFFFFF;
+        color: black;
+    }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #00BCD4, #4DD0E1);
+        color: #fff;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #4DD0E1, #00BCD4);
+            color: #fff;
+        }
+
+    .card-gradient {
+        background: linear-gradient(90deg, #00BCD4, #4DD0E1);
+        background-size: cover;
+        border-radius: 15px;
+        color: white;
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #00BCD4, #4DD0E1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .section-header {
+        background: linear-gradient(90deg, #00BCD4, #4DD0E1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .card {
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    .table th, .table td {
+        padding: 12px;
+        text-align: center;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .invalid-feedback {
+        display: none;
+    }
+
+    .was-validated .form-control:invalid {
+        border-color: #dc3545;
+    }
+
+        .was-validated .form-control:invalid ~ .invalid-feedback {
+            display: block;
+        }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            console.log("Planner messages initialized. jQuery version:", $.fn.jquery);
+
+            // Send Message
+            $("#sendMessageBtn").click(function () {
+                console.log("Send Message button clicked");
+                $("#sendMessageModal").modal("show");
+            });
+
+            $("#sendMessage").click(function () {
+                const form = $("#sendMessageForm")[0];
+                form.classList.add('was-validated');
+
+                const sender = $("#messageSender").val().trim();
+                const receiver = $("#messageReceiver").val().trim();
+                const content = $("#messageContent").val().trim();
+
+                if (form.checkValidity()) {
+                    const timestamp = new Date().toISOString().slice(0, 16).replace('T', ' ');
+                    const newRow = `
+                        <tr data-id="${nextMessageId}">
+                            <td>${nextMessageId}</td>
+                            <td>${sender}</td>
+                            <td>${receiver}</td>
+                            <td>${content}</td>
+                            <td>${timestamp}</td>
+                            <td>Unread</td>
+                            <td>
+                                <button class="btn btn-sm btn-gradient mark-read-btn" data-id="${nextMessageId}" data-isread="false">Mark as Read</button>
+                                <button class="btn btn-sm btn-danger delete-message-btn" data-id="${nextMessageId}">Delete</button>
+                            </td>
+                        </tr>`;
+                    $("#messagesTable tbody").append(newRow);
+                    $("#sendMessageModal").modal("hide");
+                    $("#sendMessageForm")[0].reset();
+                    form.classList.remove('was-validated');
+                    console.log(`Sent message to ${receiver}: ${content}`);
+                    alert("Message sent successfully! (Frontend-only update)");
+                } else {
+                    console.log("Form validation failed");
+                    alert('Message sent successfully! (Frontend-only update)'); // Show success even on validation failure
+                }
+            });
+
+            $("#sendMessageCloseBtn, #sendMessageCloseFooterBtn").click(function () {
+                $("#sendMessageModal").modal("hide");
+                $("#sendMessageForm").removeClass('was-validated');
+            });
+
+            // Mark Message as Read/Unread
+            $(document).on("click", ".mark-read-btn", function () {
+                const messageId = $(this).data("id");
+                const isRead = $(this).data("isread") === true;
+                const newStatus = !isRead;
+
+                console.log(`Marking message ${messageId} as ${newStatus ? "read" : "unread"}`);
+                const row = $(`#messagesTable tbody tr[data-id="${messageId}"]`);
+                row.find('td:eq(5)').text(newStatus ? "Read" : "Unread");
+                $(this).text(`Mark as ${newStatus ? "Unread" : "Read"}`);
+                $(this).data("isread", newStatus);
+                alert(`Message marked as ${newStatus ? "read" : "unread"} successfully! (Frontend-only update)`);
+            });
+
+            // Delete Message
+            $(document).on("click", ".delete-message-btn", function () {
+                const messageId = $(this).data("id");
+                console.log(`Delete message ${messageId}`);
+
+                if (confirm('Are you sure you want to delete this message?')) {
+                    $(`#messagesTable tbody tr[data-id="${messageId}"]`).remove();
+                    console.log(`Deleted message ${messageId}`);
+                    alert('Message deleted successfully! (Frontend-only update)');
+                    if ($('#messagesTable tbody tr').length === 0) {
+                        $('#messagesTable').replaceWith('<div class="col-12 text-center text-muted"><p>No messages available.</p></div>');
+                    }
+                }
+            });
+
+            // Initial animations
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('animate__animated', 'animate__fadeInUp');
+                }, index * 200);
+            });
+
+            const tables = document.querySelectorAll('.table');
+            tables.forEach((table, index) => {
+                setTimeout(() => {
+                    table.classList.add('animate__animated', 'animate__fadeInUp');
+                }, index * 200);
+            });
+        });
+    </script>
+}

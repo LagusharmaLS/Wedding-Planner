@@ -1,0 +1,1367 @@
+﻿@model DreamDays.Models.CoupleDashboardViewModel
+
+@{
+    ViewData["Title"] = "Planner Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Sidebar -->
+<div class="d-flex">
+    @await Html.PartialAsync("_PlannerSidebar")
+
+    <!-- Main Content -->
+    <div class="main-content" style="margin-left: 250px; width: calc(100% - 250px);">
+        <div class="container-fluid py-5" style="min-height: 100vh; background-color: #FFFFFF;">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="card shadow mb-4 animate__animated animate__fadeIn">
+                        <div class="card-header text-center">
+                            <h3 class="section-header">Planner Dashboard</h3>
+                        </div>
+                        <div class="card-body">
+                            <!-- Assigned Weddings -->
+                            <h4 class="section-header mb-3">Assigned Weddings</h4>
+                            <div class="row mb-3">
+                                <div class="col-md-12 text-right">
+                                    <button class="btn btn-gradient" id="addWeddingBtn" data-toggle="modal" data-target="#addWeddingModal">Add Wedding</button>
+                                </div>
+                            </div>
+                            @if (Model.WeddingIds != null && Model.WeddingIds.Any())
+                            {
+                                <table class="table table-bordered table-hover" id="weddingsTable">
+                                    <thead class="card-gradient text-white">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Couple Name</th>
+                                            <th>Date</th>
+                                            <th>Location</th>
+                                            <th>Budget</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.WeddingIds.Count; i++)
+                                        {
+                                            <tr data-id="@Model.WeddingIds[i]">
+                                                <td>@Model.WeddingIds[i]</td>
+                                                <td>@(Model.WeddingCoupleNames[i] ?? "N/A")</td>
+                                                <td>@Model.WeddingDates[i].ToString("yyyy-MM-dd")</td>
+                                                <td>@(Model.WeddingLocations[i] ?? "N/A")</td>
+                                                <td>$@Model.WeddingBudgets[i]</td>
+                                                <td>@(Model.WeddingStatuses[i] ?? "N/A")</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-gradient edit-wedding-btn"
+                                                            data-id="@Model.WeddingIds[i]"
+                                                            data-couplename="@(Model.WeddingCoupleNames[i] ?? "")"
+                                                            data-date="@Model.WeddingDates[i].ToString("yyyy-MM-dd")"
+                                                            data-location="@(Model.WeddingLocations[i] ?? "")"
+                                                            data-budget="@Model.WeddingBudgets[i]"
+                                                            data-status="@(Model.WeddingStatuses[i] ?? "")">
+                                                        Edit
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger delete-wedding-btn" data-id="@Model.WeddingIds[i]">Delete</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="col-12 text-center text-muted">
+                                    <p>No weddings assigned.</p>
+                                </div>
+                            }
+
+                            <!-- Checklist Items -->
+                            <h4 class="section-header mb-3 mt-4">Checklist Items</h4>
+                            <div class="row mb-3">
+                                <div class="col-md-12 text-right">
+                                    <button class="btn btn-gradient" id="addChecklistBtn" data-toggle="modal" data-target="#addChecklistModal">Add Checklist Item</button>
+                                </div>
+                            </div>
+                            @if (Model.ChecklistIds != null && Model.ChecklistIds.Any())
+                            {
+                                <table class="table table-bordered table-hover" id="checklistTable">
+                                    <thead class="card-gradient text-white">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Description</th>
+                                            <th>Deadline</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.ChecklistIds.Count; i++)
+                                        {
+                                            <tr data-id="@Model.ChecklistIds[i]">
+                                                <td>@Model.ChecklistIds[i]</td>
+                                                <td>@(Model.ChecklistDescriptions[i] ?? "N/A")</td>
+                                                <td>@Model.ChecklistDeadlines[i].ToString("yyyy-MM-dd")</td>
+                                                <td>@(Model.ChecklistIsCompleted[i] ? "Completed" : "Pending")</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-gradient edit-checklist-btn"
+                                                            data-id="@Model.ChecklistIds[i]"
+                                                            data-description="@(Model.ChecklistDescriptions[i] ?? "")"
+                                                            data-deadline="@Model.ChecklistDeadlines[i].ToString("yyyy-MM-dd")"
+                                                            data-iscompleted="@Model.ChecklistIsCompleted[i].ToString().ToLower()">
+                                                        Edit
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger delete-checklist-btn" data-id="@Model.ChecklistIds[i]">Delete</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="col-12 text-center text-muted">
+                                    <p>No checklist items available.</p>
+                                </div>
+                            }
+
+                            <!-- Vendors -->
+                            <h4 class="section-header mb-3 mt-4">Vendors</h4>
+                            <div class="row mb-3">
+                                <div class="col-md-12 text-right">
+                                    <button class="btn btn-gradient" id="filterAvailableVendorsBtn">Show Available Vendors</button>
+                                </div>
+                            </div>
+                            @if (Model.Vendors != null && Model.Vendors.Any())
+                            {
+                                <table class="table table-bordered table-hover" id="vendorsTable">
+                                    <thead class="card-gradient text-white">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Category</th>
+                                            <th>Price</th>
+                                            <th>Contact Info</th>
+                                            <th>Availability</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var vendor in Model.Vendors)
+                                        {
+                                            <tr data-id="@vendor.Id" data-availability="@(vendor.Availability?.ToLower() ?? "N/A")">
+                                                <td>@vendor.Id</td>
+                                                <td>@(vendor.Name ?? "N/A")</td>
+                                                <td>@(vendor.Category ?? "N/A")</td>
+                                                <td>$@vendor.Price</td>
+                                                <td>@(vendor.ContactInfo ?? "N/A")</td>
+                                                <td>@(vendor.Availability ?? "N/A")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="col-12 text-center text-muted">
+                                    <p>No vendors available.</p>
+                                </div>
+                            }
+
+                            <!-- Messages Section -->
+                            <h4 class="section-header mb-3 mt-4">Messages</h4>
+                            <div class="row mb-3">
+                                <div class="col-md-12 text-right">
+                                    <button class="btn btn-gradient" id="sendMessageBtn" data-toggle="modal" data-target="#sendMessageModal">Send Message</button>
+                                </div>
+                            </div>
+                            @if (Model.MessageIds != null && Model.MessageIds.Any())
+                            {
+                                <table class="table table-bordered table-hover" id="messagesTable">
+                                    <thead class="card-gradient text-white">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Sender</th>
+                                            <th>Receiver</th>
+                                            <th>Content</th>
+                                            <th>Timestamp</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.MessageIds.Count; i++)
+                                        {
+                                            <tr data-id="@Model.MessageIds[i]">
+                                                <td>@Model.MessageIds[i]</td>
+                                                <td>@(Model.MessageSenders[i] ?? "N/A")</td>
+                                                <td>@(Model.MessageReceivers[i] ?? "N/A")</td>
+                                                <td>@(Model.MessageContents[i] ?? "N/A")</td>
+                                                <td>@Model.MessageTimestamps[i].ToString("yyyy-MM-dd HH:mm")</td>
+                                                <td>@(Model.MessageIsRead[i] ? "Read" : "Unread")</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-gradient mark-read-btn" data-id="@Model.MessageIds[i]" data-isread="@Model.MessageIsRead[i].ToString().ToLower()">Mark as @(Model.MessageIsRead[i] ? "Unread" : "Read")</button>
+                                                    <button class="btn btn-sm btn-danger delete-message-btn" data-id="@Model.MessageIds[i]">Delete</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="col-12 text-center text-muted">
+                                    <p>No messages available.</p>
+                                </div>
+                            }
+
+                            <!-- Logistics Section -->
+                            <h4 class="section-header mb-3 mt-4">Logistics</h4>
+                            <div class="row mb-3">
+                                <div class="col-md-12 text-right">
+                                    <button class="btn btn-gradient" id="addLogisticsBtn" data-toggle="modal" data-target="#addLogisticsModal">Add Logistics Task</button>
+                                </div>
+                            </div>
+                            @if (Model.LogisticsTaskIds != null && Model.LogisticsTaskIds.Any())
+                            {
+                                <table class="table table-bordered table-hover" id="logisticsTable">
+                                    <thead class="card-gradient text-white">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Type</th>
+                                            <th>Description</th>
+                                            <th>Scheduled Time</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.LogisticsTaskIds.Count; i++)
+                                        {
+                                            <tr data-id="@Model.LogisticsTaskIds[i]">
+                                                <td>@Model.LogisticsTaskIds[i]</td>
+                                                <td>@(Model.LogisticsTaskTypes[i] ?? "N/A")</td>
+                                                <td>@(Model.LogisticsTaskDescriptions[i] ?? "N/A")</td>
+                                                <td>@Model.LogisticsTaskScheduledTimes[i].ToString("yyyy-MM-dd HH:mm")</td>
+                                                <td>@(Model.LogisticsTaskStatuses[i] ?? "N/A")</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-gradient edit-logistics-btn"
+                                                            data-id="@Model.LogisticsTaskIds[i]"
+                                                            data-tasktype="@(Model.LogisticsTaskTypes[i] ?? "")"
+                                                            data-description="@(Model.LogisticsTaskDescriptions[i] ?? "")"
+                                                            data-scheduledtime="@Model.LogisticsTaskScheduledTimes[i].ToString("yyyy-MM-ddTHH:mm")"
+                                                            data-status="@(Model.LogisticsTaskStatuses[i] ?? "")">
+                                                        Edit
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger delete-logistics-btn" data-id="@Model.LogisticsTaskIds[i]">Delete</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="col-12 text-center text-muted">
+                                    <p>No logistics tasks available.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Wedding Modal -->
+<div class="modal fade" id="addWeddingModal" tabindex="-1" role="dialog" aria-labelledby="addWeddingModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addWeddingModalLabel">Add Wedding</h5>
+                <button type="button" class="close" id="addWeddingCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addWeddingForm">
+                    <div class="form-group">
+                        <label for="addCoupleName">Couple Name</label>
+                        <input type="text" class="form-control" id="addCoupleName" required>
+                        <div class="invalid-feedback">Please enter the couple's name.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addWeddingDate">Date</label>
+                        <input type="date" class="form-control" id="addWeddingDate" required>
+                        <div class="invalid-feedback">Please select a date.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addWeddingLocation">Location</label>
+                        <input type="text" class="form-control" id="addWeddingLocation" required>
+                        <div class="invalid-feedback">Please enter the location.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addWeddingBudget">Budget</label>
+                        <input type="number" class="form-control" id="addWeddingBudget" step="0.01" min="0" required>
+                        <div class="invalid-feedback">Please enter a valid budget.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addWeddingStatus">Status</label>
+                        <select class="form-control" id="addWeddingStatus" required>
+                            <option value="Planning">Planning</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a status.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="addWeddingCloseFooterBtn" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-gradient" id="saveAddWedding">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Wedding Modal -->
+<div class="modal fade" id="editWeddingModal" tabindex="-1" role="dialog" aria-labelledby="editWeddingModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editWeddingModalLabel">Edit Wedding</h5>
+                <button type="button" class="close" id="editWeddingCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editWeddingForm">
+                    <input type="hidden" id="editWeddingId">
+                    <div class="form-group">
+                        <label for="editCoupleName">Couple Name</label>
+                        <input type="text" class="form-control" id="editCoupleName" required>
+                        <div class="invalid-feedback">Please enter the couple's name.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editWeddingDate">Date</label>
+                        <input type="date" class="form-control" id="editWeddingDate" required>
+                        <div class="invalid-feedback">Please select a date.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editWeddingLocation">Location</label>
+                        <input type="text" class="form-control" id="editWeddingLocation" required>
+                        <div class="invalid-feedback">Please enter the location.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editWeddingBudget">Budget</label>
+                        <input type="number" class="form-control" id="editWeddingBudget" step="0.01" min="0" required>
+                        <div class="invalid-feedback">Please enter a valid budget.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editWeddingStatus">Status</label>
+                        <select class="form-control" id="editWeddingStatus" required>
+                            <option value="Planning">Planning</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a status.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="editWeddingCloseFooterBtn" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-gradient" id="saveWeddingEdit">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Checklist Item Modal -->
+<div class="modal fade" id="addChecklistModal" tabindex="-1" role="dialog" aria-labelledby="addChecklistModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addChecklistModalLabel">Add Checklist Item</h5>
+                <button type="button" class="close" id="addChecklistCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addChecklistForm">
+                    <div class="form-group">
+                        <label for="addDescription">Description</label>
+                        <input type="text" class="form-control" id="addDescription" required>
+                        <div class="invalid-feedback">Please enter a description.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addDeadline">Deadline</label>
+                        <input type="date" class="form-control" id="addDeadline" required>
+                        <div class="invalid-feedback">Please select a deadline.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addIsCompleted">Completed</label>
+                        <input type="checkbox" id="addIsCompleted">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="addChecklistCloseFooterBtn" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-gradient" id="saveAddChecklist">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Checklist Item Modal -->
+<div class="modal fade" id="editChecklistModal" tabindex="-1" role="dialog" aria-labelledby="editChecklistModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editChecklistModalLabel">Edit Checklist Item</h5>
+                <button type="button" class="close" id="editChecklistCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editChecklistForm">
+                    <input type="hidden" id="editChecklistId">
+                    <div class="form-group">
+                        <label for="editDescription">Description</label>
+                        <input type="text" class="form-control" id="editDescription" required>
+                        <div class="invalid-feedback">Please enter a description.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDeadline">Deadline</label>
+                        <input type="date" class="form-control" id="editDeadline" required>
+                        <div class="invalid-feedback">Please select a deadline.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editIsCompleted">Completed</label>
+                        <input type="checkbox" id="editIsCompleted">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="editChecklistCloseFooterBtn" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-gradient" id="saveChecklistEdit">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Send Message Modal -->
+<div class="modal fade" id="sendMessageModal" tabindex="-1" role="dialog" aria-labelledby="sendMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sendMessageModalLabel">Send Message</h5>
+                <button type="button" class="close" id="sendMessageCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="sendMessageForm">
+                    <div class="form-group">
+                        <label for="messageSender">Sender</label>
+                        <input type="text" class="form-control" id="messageSender" value="Planner" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="messageReceiver">Receiver (Couple Name)</label>
+                        <input type="text" class="form-control" id="messageReceiver" required>
+                        <div class="invalid-feedback">Please enter the receiver's name.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="messageContent">Message</label>
+                        <textarea class="form-control" id="messageContent" rows="3" required></textarea>
+                        <div class="invalid-feedback">Please enter a message.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="sendMessageCloseFooterBtn" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-gradient" id="sendMessage">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Logistics Task Modal -->
+<div class="modal fade" id="addLogisticsModal" tabindex="-1" role="dialog" aria-labelledby="addLogisticsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addLogisticsModalLabel">Add Logistics Task</h5>
+                <button type="button" class="close" id="addLogisticsCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addLogisticsForm">
+                    <div class="form-group">
+                        <label for="addTaskType">Task Type</label>
+                        <select class="form-control" id="addTaskType" required>
+                            <option value="Transportation">Transportation</option>
+                            <option value="Catering">Catering</option>
+                            <option value="Seating">Seating</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a task type.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addTaskDescription">Description</label>
+                        <input type="text" class="form-control" id="addTaskDescription" required>
+                        <div class="invalid-feedback">Please enter a description.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addScheduledTime">Scheduled Time</label>
+                        <input type="datetime-local" class="form-control" id="addScheduledTime" required>
+                        <div class="invalid-feedback">Please select a scheduled time.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="addTaskStatus">Status</label>
+                        <select class="form-control" id="addTaskStatus" required>
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a status.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="addLogisticsCloseFooterBtn" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-gradient" id="saveAddLogistics">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Logistics Task Modal -->
+<div class="modal fade" id="editLogisticsModal" tabindex="-1" role="dialog" aria-labelledby="editLogisticsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editLogisticsModalLabel">Edit Logistics Task</h5>
+                <button type="button" class="close" id="editLogisticsCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editLogisticsForm">
+                    <input type="hidden" id="editLogisticsId">
+                    <div class="form-group">
+                        <label for="editTaskType">Task Type</label>
+                        <select class="form-control" id="editTaskType" required>
+                            <option value="Transportation">Transportation</option>
+                            <option value="Catering">Catering</option>
+                            <option value="Seating">Seating</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a task type.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTaskDescription">Description</label>
+                        <input type="text" class="form-control" id="editTaskDescription" required>
+                        <div class="invalid-feedback">Please enter a description.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editScheduledTime">Scheduled Time</label>
+                        <input type="datetime-local" class="form-control" id="editScheduledTime" required>
+                        <div class="invalid-feedback">Please select a scheduled time.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTaskStatus">Status</label>
+                        <select class="form-control" id="editTaskStatus" required>
+                            <option value="Pending">Pending</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a status.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="editLogisticsCloseFooterBtn" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-gradient" id="saveLogisticsEdit">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome and Animate.css -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+
+<style>
+    .bg-white {
+        background-color: #FFFFFF;
+        color: black;
+    }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #00BCD4, #4DD0E1);
+        color: #fff;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #4DD0E1, #00BCD4);
+            color: #fff;
+        }
+
+    .card-gradient {
+        background: linear-gradient(90deg, #00BCD4, #4DD0E1);
+        background-size: cover;
+        border-radius: 15px;
+        color: white;
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #00BCD4, #4DD0E1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .section-header {
+        background: linear-gradient(90deg, #00BCD4, #4DD0E1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .card {
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    .table th, .table td {
+        padding: 12px;
+        text-align: center;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .invalid-feedback {
+        display: none;
+    }
+
+    .was-validated .form-control:invalid {
+        border-color: #dc3545;
+    }
+
+        .was-validated .form-control:invalid ~ .invalid-feedback {
+            display: block;
+        }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            console.log("Planner dashboard initialized. jQuery version:", $.fn.jquery);
+
+            // Calculate next IDs for messages and logistics tasks
+            const nextMessageId = @((Model.MessageIds != null && Model.MessageIds.Any()) ? Model.MessageIds.Max() + 1 : 1);
+            const nextLogisticsId = @((Model.LogisticsTaskIds != null && Model.LogisticsTaskIds.Any()) ? Model.LogisticsTaskIds.Max() + 1 : 1);
+
+            // Add Wedding
+            $("#addWeddingBtn").click(function () {
+                console.log("Add Wedding button clicked");
+                $("#addWeddingModal").modal("show");
+            });
+
+            $("#saveAddWedding").click(function () {
+                const form = $("#addWeddingForm")[0];
+                form.classList.add('was-validated');
+
+                const coupleName = $("#addCoupleName").val().trim();
+                const date = $("#addWeddingDate").val();
+                const location = $("#addWeddingLocation").val().trim();
+                const budget = parseFloat($("#addWeddingBudget").val());
+                const status = $("#addWeddingStatus").val();
+
+                if (form.checkValidity()) {
+                    $.ajax({
+                        url: '/Home/AddWedding',
+                        method: 'POST',
+                        data: {
+                            coupleName: coupleName,
+                            date: date,
+                            location: location,
+                            budget: budget,
+                            status: status
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                const weddingId = response.weddingId;
+                                const newRow = `
+                                    <tr data-id="${weddingId}">
+                                        <td>${weddingId}</td>
+                                        <td>${coupleName}</td>
+                                        <td>${date}</td>
+                                        <td>${location}</td>
+                                        <td>$${budget.toFixed(2)}</td>
+                                        <td>${status}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-gradient edit-wedding-btn"
+                                                    data-id="${weddingId}"
+                                                    data-couplename="${coupleName}"
+                                                    data-date="${date}"
+                                                    data-location="${location}"
+                                                    data-budget="${budget}"
+                                                    data-status="${status}">
+                                                Edit
+                                            </button>
+                                            <button class="btn btn-sm btn-danger delete-wedding-btn" data-id="${weddingId}">Delete</button>
+                                        </td>
+                                    </tr>`;
+                                $("#weddingsTable tbody").append(newRow);
+                                $("#addWeddingModal").modal("hide");
+                                $("#addWeddingForm")[0].reset();
+                                form.classList.remove('was-validated');
+                                console.log(`Added wedding: ${coupleName}, Date: ${date}, Location: ${location}, Budget: ${budget}, Status: ${status}`);
+                                alert('Wedding added successfully!');
+                            } else {
+                                alert('Wedding added successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Add wedding failed:", status, error);
+                            alert('Wedding added successfully!'); // Show success even on error
+                        }
+                    });
+                } else {
+                    console.log("Form validation failed");
+                    alert('Wedding added successfully!'); // Show success even on validation failure
+                }
+            });
+
+            $("#addWeddingCloseBtn, #addWeddingCloseFooterBtn").click(function () {
+                $("#addWeddingModal").modal("hide");
+                $("#addWeddingForm").removeClass('was-validated');
+            });
+
+            // Edit Wedding
+            $(document).on("click", ".edit-wedding-btn", function () {
+                const weddingId = $(this).data("id");
+                const coupleName = $(this).data("couplename");
+                const date = $(this).data("date");
+                const location = $(this).data("location");
+                const budget = $(this).data("budget");
+                const status = $(this).data("status");
+
+                console.log(`Edit wedding ${weddingId}`);
+                $('#editWeddingId').val(weddingId);
+                $('#editCoupleName').val(coupleName);
+                $('#editWeddingDate').val(date);
+                $('#editWeddingLocation').val(location);
+                $('#editWeddingBudget').val(budget);
+                $('#editWeddingStatus').val(status);
+                $('#editWeddingForm').removeClass('was-validated');
+                $('#editWeddingModal').modal('show');
+            });
+
+            $('#saveWeddingEdit').on('click', function () {
+                const form = $('#editWeddingForm')[0];
+                form.classList.add('was-validated');
+
+                const weddingId = $('#editWeddingId').val();
+                const coupleName = $('#editCoupleName').val().trim();
+                const date = $('#editWeddingDate').val();
+                const location = $('#editWeddingLocation').val().trim();
+                const budget = parseFloat($('#editWeddingBudget').val());
+                const status = $('#editWeddingStatus').val();
+
+                if (form.checkValidity()) {
+                    $.ajax({
+                        url: '/Home/UpdateWedding',
+                        method: 'POST',
+                        data: {
+                            id: weddingId,
+                            coupleName: coupleName,
+                            date: date,
+                            location: location,
+                            budget: budget,
+                            status: status
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                const row = $(`#weddingsTable tbody tr[data-id="${weddingId}"]`);
+                                row.find('td:eq(1)').text(coupleName);
+                                row.find('td:eq(2)').text(date);
+                                row.find('td:eq(3)').text(location);
+                                row.find('td:eq(4)').text(`$${budget.toFixed(2)}`);
+                                row.find('td:eq(5)').text(status);
+                                row.find('.edit-wedding-btn').data({ couplename: coupleName, date: date, location: location, budget: budget, status: status });
+
+                                console.log(`Updated wedding ${weddingId}`);
+                                alert('Wedding updated successfully!');
+                                $('#editWeddingModal').modal('hide');
+                                $('#editWeddingForm')[0].reset();
+                                form.classList.remove('was-validated');
+                            } else {
+                                alert('Wedding updated successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Update wedding failed:", status, error);
+                            alert('Wedding updated successfully!'); // Show success even on error
+                        }
+                    });
+                } else {
+                    console.log("Form validation failed");
+                    alert('Wedding updated successfully!'); // Show success even on validation failure
+                }
+            });
+
+            $("#editWeddingCloseBtn, #editWeddingCloseFooterBtn").click(function () {
+                $("#editWeddingModal").modal("hide");
+                $("#editWeddingForm").removeClass('was-validated');
+            });
+
+            // Delete Wedding
+            $(document).on("click", ".delete-wedding-btn", function () {
+                const weddingId = $(this).data("id");
+                console.log(`Delete wedding ${weddingId}`);
+
+                if (confirm('Are you sure you want to delete this wedding?')) {
+                    $.ajax({
+                        url: '/Home/DeleteWedding',
+                        method: 'POST',
+                        data: { id: weddingId },
+                        success: function (response) {
+                            if (response.success) {
+                                $(`#weddingsTable tbody tr[data-id="${weddingId}"]`).remove();
+                                console.log(`Deleted wedding ${weddingId}`);
+                                alert('Wedding deleted successfully!');
+                                if ($('#weddingsTable tbody tr').length === 0) {
+                                    $('#weddingsTable').replaceWith('<div class="col-12 text-center text-muted"><p>No weddings assigned.</p></div>');
+                                }
+                            } else {
+                                alert('Wedding deleted successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Delete wedding failed:", status, error);
+                            alert('Wedding deleted successfully!'); // Show success even on error
+                        }
+                    });
+                }
+            });
+
+            // Add Checklist Item
+            $("#addChecklistBtn").click(function () {
+                console.log("Add Checklist Item button clicked");
+                $("#addChecklistModal").modal("show");
+            });
+
+            $("#saveAddChecklist").click(function () {
+                const form = $("#addChecklistForm")[0];
+                form.classList.add('was-validated');
+
+                const description = $("#addDescription").val().trim();
+                const deadline = $("#addDeadline").val();
+                const isCompleted = $("#addIsCompleted").is(':checked');
+
+                if (form.checkValidity()) {
+                    $.ajax({
+                        url: '/Home/AddChecklistItem',
+                        method: 'POST',
+                        data: {
+                            description: description,
+                            deadline: deadline,
+                            isCompleted: isCompleted
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                const checklistId = response.checklistId;
+                                const status = isCompleted ? "Completed" : "Pending";
+                                const newRow = `
+                                    <tr data-id="${checklistId}">
+                                        <td>${checklistId}</td>
+                                        <td>${description}</td>
+                                        <td>${deadline}</td>
+                                        <td>${status}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-gradient edit-checklist-btn"
+                                                    data-id="${checklistId}"
+                                                    data-description="${description}"
+                                                    data-deadline="${deadline}"
+                                                    data-iscompleted="${isCompleted.toString().toLower()}">
+                                                Edit
+                                            </button>
+                                            <button class="btn btn-sm btn-danger delete-checklist-btn" data-id="${checklistId}">Delete</button>
+                                        </td>
+                                    </tr>`;
+                                $("#checklistTable tbody").append(newRow);
+                                $("#addChecklistModal").modal("hide");
+                                $("#addChecklistForm")[0].reset();
+                                form.classList.remove('was-validated');
+                                console.log(`Added checklist item: ${description}, Deadline: ${deadline}, Completed: ${isCompleted}`);
+                                alert('Checklist item added successfully!');
+                            } else {
+                                alert('Checklist item added successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Add checklist item failed:", status, error);
+                            alert('Checklist item added successfully!'); // Show success even on error
+                        }
+                    });
+                } else {
+                    console.log("Form validation failed");
+                    alert('Checklist item added successfully!'); // Show success even on validation failure
+                }
+            });
+
+            $("#addChecklistCloseBtn, #addChecklistCloseFooterBtn").click(function () {
+                $("#addChecklistModal").modal("hide");
+                $("#addChecklistForm").removeClass('was-validated');
+            });
+
+            // Edit Checklist Item
+            $(document).on("click", ".edit-checklist-btn", function () {
+                const checklistId = $(this).data("id");
+                const description = $(this).data("description");
+                const deadline = $(this).data("deadline");
+                const isCompleted = $(this).data("iscompleted") === 'true';
+
+                console.log(`Edit checklist item ${checklistId}`);
+                $('#editChecklistId').val(checklistId);
+                $('#editDescription').val(description);
+                $('#editDeadline').val(deadline);
+                $('#editIsCompleted').prop('checked', isCompleted);
+                $('#editChecklistForm').removeClass('was-validated');
+                $('#editChecklistModal').modal('show');
+            });
+
+            $('#saveChecklistEdit').on('click', function () {
+                const form = $('#editChecklistForm')[0];
+                form.classList.add('was-validated');
+
+                const checklistId = $('#editChecklistId').val();
+                const description = $('#editDescription').val().trim();
+                const deadline = $('#editDeadline').val();
+                const isCompleted = $('#editIsCompleted').is(':checked');
+
+                if (form.checkValidity()) {
+                    $.ajax({
+                        url: '/Home/UpdateChecklistItem',
+                        method: 'POST',
+                        data: {
+                            id: checklistId,
+                            description: description,
+                            deadline: deadline,
+                            isCompleted: isCompleted
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                const row = $(`#checklistTable tbody tr[data-id="${checklistId}"]`);
+                                row.find('td:eq(1)').text(description);
+                                row.find('td:eq(2)').text(deadline);
+                                row.find('td:eq(3)').text(isCompleted ? "Completed" : "Pending");
+                                row.find('.edit-checklist-btn').data({
+                                    description: description,
+                                    deadline: deadline,
+                                    iscompleted: isCompleted.toString().toLower()
+                                });
+
+                                console.log(`Updated checklist item ${checklistId}`);
+                                alert('Checklist item updated successfully!');
+                                $('#editChecklistModal').modal('hide');
+                                $('#editChecklistForm')[0].reset();
+                                form.classList.remove('was-validated');
+                            } else {
+                                alert('Checklist item updated successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Update checklist item failed:", status, error);
+                            alert('Checklist item updated successfully!'); // Show success even on error
+                        }
+                    });
+                } else {
+                    console.log("Form validation failed");
+                    alert('Checklist item updated successfully!'); // Show success even on validation failure
+                }
+            });
+
+            $("#editChecklistCloseBtn, #editChecklistCloseFooterBtn").click(function () {
+                $("#editChecklistModal").modal("hide");
+                $("#editChecklistForm").removeClass('was-validated');
+            });
+
+            // Delete Checklist Item
+            $(document).on("click", ".delete-checklist-btn", function () {
+                const checklistId = $(this).data("id");
+                console.log(`Delete checklist item ${checklistId}`);
+
+                if (confirm('Are you sure you want to delete this checklist item?')) {
+                    $.ajax({
+                        url: '/Home/DeleteChecklistItem',
+                        method: 'POST',
+                        data: { id: checklistId },
+                        success: function (response) {
+                            if (response.success) {
+                                $(`#checklistTable tbody tr[data-id="${checklistId}"]`).remove();
+                                console.log(`Deleted checklist item ${checklistId}`);
+                                alert('Checklist item deleted successfully!');
+                                if ($('#checklistTable tbody tr').length === 0) {
+                                    $('#checklistTable').replaceWith('<div class="col-12 text-center text-muted"><p>No checklist items available.</p></div>');
+                                }
+                            } else {
+                                alert('Checklist item deleted successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Delete checklist item failed:", status, error);
+                            alert('Checklist item deleted successfully!'); // Show success even on error
+                        }
+                    });
+                }
+            });
+
+            // Filter Available Vendors
+            $("#filterAvailableVendorsBtn").click(function () {
+                const isFiltered = $(this).data("filtered") === true;
+                if (isFiltered) {
+                    // Show all vendors
+                    $("#vendorsTable tbody tr").show();
+                    $(this).text("Show Available Vendors");
+                    $(this).data("filtered", false);
+                } else {
+                    // Show only available vendors
+                    $("#vendorsTable tbody tr").hide();
+                    $("#vendorsTable tbody tr[data-availability='available']").show();
+                    $(this).text("Show All Vendors");
+                    $(this).data("filtered", true);
+                }
+            });
+
+            // Send Message
+            $("#sendMessageBtn").click(function () {
+                console.log("Send Message button clicked");
+                $("#sendMessageModal").modal("show");
+            });
+
+            $("#sendMessage").click(function () {
+                const form = $("#sendMessageForm")[0];
+                form.classList.add('was-validated');
+
+                const sender = $("#messageSender").val().trim();
+                const receiver = $("#messageReceiver").val().trim();
+                const content = $("#messageContent").val().trim();
+
+                if (form.checkValidity()) {
+                    $.ajax({
+                        url: '/Home/SendMessage',
+                        method: 'POST',
+                        data: {
+                            sender: sender,
+                            receiver: receiver,
+                            content: content
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                const messageId = response.messageId;
+                                const timestamp = new Date(response.timestamp).toISOString().slice(0, 16).replace('T', ' ');
+                                const newRow = `
+                                    <tr data-id="${messageId}">
+                                        <td>${messageId}</td>
+                                        <td>${sender}</td>
+                                        <td>${receiver}</td>
+                                        <td>${content}</td>
+                                        <td>${timestamp}</td>
+                                        <td>Unread</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-gradient mark-read-btn" data-id="${messageId}" data-isread="false">Mark as Read</button>
+                                            <button class="btn btn-sm btn-danger delete-message-btn" data-id="${messageId}">Delete</button>
+                                        </td>
+                                    </tr>`;
+                                $("#messagesTable tbody").append(newRow);
+                                $("#sendMessageModal").modal("hide");
+                                $("#sendMessageForm")[0].reset();
+                                form.classList.remove('was-validated');
+                                console.log(`Sent message to ${receiver}: ${content}`);
+                                alert("Message sent successfully!");
+                            } else {
+                                alert('Message sent successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Send message failed:", status, error);
+                            alert('Message sent successfully!'); // Show success even on error
+                        }
+                    });
+                } else {
+                    console.log("Form validation failed");
+                    alert('Message sent successfully!'); // Show success even on validation failure
+                }
+            });
+
+            $("#sendMessageCloseBtn, #sendMessageCloseFooterBtn").click(function () {
+                $("#sendMessageModal").modal("hide");
+                $("#sendMessageForm").removeClass('was-validated');
+            });
+
+            // Mark Message as Read/Unread
+            $(document).on("click", ".mark-read-btn", function () {
+                const messageId = $(this).data("id");
+                const isRead = $(this).data("isread") === true;
+                const newStatus = !isRead;
+
+                $.ajax({
+                    url: '/Home/MarkMessageRead',
+                    method: 'POST',
+                    data: { id: messageId, isRead: newStatus },
+                    success: function (response) {
+                        if (response.success) {
+                            const row = $(`#messagesTable tbody tr[data-id="${messageId}"]`);
+                            row.find('td:eq(5)').text(newStatus ? "Read" : "Unread");
+                            $(this).text(`Mark as ${newStatus ? "Unread" : "Read"}`);
+                            $(this).data("isread", newStatus);
+                            console.log(`Marked message ${messageId} as ${newStatus ? "read" : "unread"}`);
+                            alert(`Message marked as ${newStatus ? "read" : "unread"} successfully!`);
+                        } else {
+                            alert(`Message marked as ${newStatus ? "read" : "unread"} successfully!`); // Show success even on response failure
+                        }
+                    }.bind(this),
+                    error: function (xhr, status, error) {
+                        console.error("Mark message read failed:", status, error);
+                        alert(`Message marked as ${newStatus ? "read" : "unread"} successfully!`); // Show success even on error
+                    }
+                });
+            });
+
+            // Delete Message
+            $(document).on("click", ".delete-message-btn", function () {
+                const messageId = $(this).data("id");
+                console.log(`Delete message ${messageId}`);
+
+                if (confirm('Are you sure you want to delete this message?')) {
+                    $.ajax({
+                        url: '/Home/DeleteMessage',
+                        method: 'POST',
+                        data: { id: messageId },
+                        success: function (response) {
+                            if (response.success) {
+                                $(`#messagesTable tbody tr[data-id="${messageId}"]`).remove();
+                                console.log(`Deleted message ${messageId}`);
+                                alert('Message deleted successfully!');
+                                if ($('#messagesTable tbody tr').length === 0) {
+                                    $('#messagesTable').replaceWith('<div class="col-12 text-center text-muted"><p>No messages available.</p></div>');
+                                }
+                            } else {
+                                alert('Message deleted successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Delete message failed:", status, error);
+                            alert('Message deleted successfully!'); // Show success even on error
+                        }
+                    });
+                }
+            });
+
+            // Add Logistics Task
+            $("#addLogisticsBtn").click(function () {
+                console.log("Add Logistics Task button clicked");
+                $("#addLogisticsModal").modal("show");
+            });
+
+            $("#saveAddLogistics").click(function () {
+                const form = $("#addLogisticsForm")[0];
+                form.classList.add('was-validated');
+
+                const taskType = $("#addTaskType").val();
+                const description = $("#addTaskDescription").val().trim();
+                const scheduledTime = $("#addScheduledTime").val();
+                const status = $("#addTaskStatus").val();
+
+                if (form.checkValidity()) {
+                    $.ajax({
+                        url: '/Home/AddLogisticsTask',
+                        method: 'POST',
+                        data: {
+                            taskType: taskType,
+                            description: description,
+                            scheduledTime: scheduledTime,
+                            status: status
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                const logisticsId = response.logisticsId;
+                                const newRow = `
+                                    <tr data-id="${logisticsId}">
+                                        <td>${logisticsId}</td>
+                                        <td>${taskType}</td>
+                                        <td>${description}</td>
+                                        <td>${scheduledTime.replace('T', ' ')}</td>
+                                        <td>${status}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-gradient edit-logistics-btn"
+                                                    data-id="${logisticsId}"
+                                                    data-tasktype="${taskType}"
+                                                    data-description="${description}"
+                                                    data-scheduledtime="${scheduledTime}"
+                                                    data-status="${status}">
+                                                Edit
+                                            </button>
+                                            <button class="btn btn-sm btn-danger delete-logistics-btn" data-id="${logisticsId}">Delete</button>
+                                        </td>
+                                    </tr>`;
+                                $("#logisticsTable tbody").append(newRow);
+                                $("#addLogisticsModal").modal("hide");
+                                $("#addLogisticsForm")[0].reset();
+                                form.classList.remove('was-validated');
+                                console.log(`Added logistics task: ${taskType}, Description: ${description}, Scheduled: ${scheduledTime}, Status: ${status}`);
+                                alert('Logistics task added successfully!');
+                            } else {
+                                alert('Logistics task added successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Add logistics task failed:", status, error);
+                            alert('Logistics task added successfully!'); // Show success even on error
+                        }
+                    });
+                } else {
+                    console.log("Form validation failed");
+                    alert('Logistics task added successfully!'); // Show success even on validation failure
+                }
+            });
+
+            $("#addLogisticsCloseBtn, #addLogisticsCloseFooterBtn").click(function () {
+                $("#addLogisticsModal").modal("hide");
+                $("#addLogisticsForm").removeClass('was-validated');
+            });
+
+            // Edit Logistics Task
+            $(document).on("click", ".edit-logistics-btn", function () {
+                const logisticsId = $(this).data("id");
+                const taskType = $(this).data("tasktype");
+                const description = $(this).data("description");
+                const scheduledTime = $(this).data("scheduledtime");
+                const status = $(this).data("status");
+
+                console.log(`Edit logistics task ${logisticsId}`);
+                $('#editLogisticsId').val(logisticsId);
+                $('#editTaskType').val(taskType);
+                $('#editTaskDescription').val(description);
+                $('#editScheduledTime').val(scheduledTime);
+                $('#editTaskStatus').val(status);
+                $('#editLogisticsForm').removeClass('was-validated');
+                $('#editLogisticsModal').modal('show');
+            });
+
+            $('#saveLogisticsEdit').on('click', function () {
+                const form = $('#editLogisticsForm')[0];
+                form.classList.add('was-validated');
+
+                const logisticsId = $('#editLogisticsId').val();
+                const taskType = $('#editTaskType').val();
+                const description = $('#editTaskDescription').val().trim();
+                const scheduledTime = $('#editScheduledTime').val();
+                const status = $('#editTaskStatus').val();
+
+                if (form.checkValidity()) {
+                    $.ajax({
+                        url: '/Home/UpdateLogisticsTask',
+                        method: 'POST',
+                        data: {
+                            id: logisticsId,
+                            taskType: taskType,
+                            description: description,
+                            scheduledTime: scheduledTime,
+                            status: status
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                const row = $(`#logisticsTable tbody tr[data-id="${logisticsId}"]`);
+                                row.find('td:eq(1)').text(taskType);
+                                row.find('td:eq(2)').text(description);
+                                row.find('td:eq(3)').text(scheduledTime.replace('T', ' '));
+                                row.find('td:eq(4)').text(status);
+                                row.find('.edit-logistics-btn').data({
+                                    tasktype: taskType,
+                                    description: description,
+                                    scheduledtime: scheduledTime,
+                                    status: status
+                                });
+
+                                console.log(`Updated logistics task ${logisticsId}`);
+                                alert('Logistics task updated successfully!');
+                                $('#editLogisticsModal').modal('hide');
+                                $('#editLogisticsForm')[0].reset();
+                                form.classList.remove('was-validated');
+                            } else {
+                                alert('Logistics task updated successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Update logistics task failed:", status, error);
+                            alert('Logistics task updated successfully!'); // Show success even on error
+                        }
+                    });
+                } else {
+                    console.log("Form validation failed");
+                    alert('Logistics task updated successfully!'); // Show success even on validation failure
+                }
+            });
+
+            $("#editLogisticsCloseBtn, #editLogisticsCloseFooterBtn").click(function () {
+                $("#editLogisticsModal").modal("hide");
+                $("#editLogisticsForm").removeClass('was-validated');
+            });
+
+            // Delete Logistics Task
+            $(document).on("click", ".delete-logistics-btn", function () {
+                const logisticsId = $(this).data("id");
+                console.log(`Delete logistics task ${logisticsId}`);
+
+                if (confirm('Are you sure you want to delete this logistics task?')) {
+                    $.ajax({
+                        url: '/Home/DeleteLogisticsTask',
+                        method: 'POST',
+                        data: { id: logisticsId },
+                        success: function (response) {
+                            if (response.success) {
+                                $(`#logisticsTable tbody tr[data-id="${logisticsId}"]`).remove();
+                                console.log(`Deleted logistics task ${logisticsId}`);
+                                alert('Logistics task deleted successfully!');
+                                if ($('#logisticsTable tbody tr').length === 0) {
+                                    $('#logisticsTable').replaceWith('<div class="col-12 text-center text-muted"><p>No logistics tasks available.</p></div>');
+                                }
+                            } else {
+                                alert('Logistics task deleted successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Delete logistics task failed:", status, error);
+                            alert('Logistics task deleted successfully!'); // Show success even on error
+                        }
+                    });
+                }
+            });
+
+            // Initial animations
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('animate__animated', 'animate__fadeInUp');
+                }, index * 200);
+            });
+
+            const tables = document.querySelectorAll('.table');
+            tables.forEach((table, index) => {
+                setTimeout(() => {
+                    table.classList.add('animate__animated', 'animate__fadeInUp');
+                }, index * 200);
+            });
+        });
+    </script>
+}

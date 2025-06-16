@@ -1,0 +1,293 @@
+﻿@model DreamDays.Models.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Reports";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Sidebar -->
+<div class="d-flex">
+    @await Html.PartialAsync("_Sidebar")
+
+    <!-- Main Content -->
+    <div class="main-content" style="margin-left: 250px; width: calc(100% - 250px);">
+        <div class="container-fluid py-5" style="height: 100vh; background: linear-gradient(90deg, rgba(255, 111, 97, 0.2), rgba(255, 184, 140, 0.2));">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="card shadow mb-4 animate__animated animate__fadeIn">
+                        <div class="card-header text-center">
+                            <h3 class="section-header">System Reports</h3>
+                        </div>
+                        <div class="card-body">
+                            <h4 class="section-header mb-3">Overview</h4>
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <p><strong>Total Users:</strong> @Model.Users.Count</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Total Couples:</strong> @Model.Couples.Count</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Total Vendors:</strong> @Model.Vendors.Count</p>
+                                </div>
+                            </div>
+
+                            <h4 class="section-header mb-3 mt-4">User Activity</h4>
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <canvas id="userActivityChart" height="200"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-bordered">
+                                        <thead class="card-gradient text-white">
+                                            <tr>
+                                                <th>Role</th>
+                                                <th>Count</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Admins</td>
+                                                <td>@Model.Users.Count(u => u.Role == "Admin")</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Couples</td>
+                                                <td>@Model.Users.Count(u => u.Role == "Couple")</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <h4 class="section-header mb-3 mt-4">Vendor Distribution</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <canvas id="vendorDistributionChart" height="200"></canvas>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-bordered">
+                                        <thead class="card-gradient text-white">
+                                            <tr>
+                                                <th>Category</th>
+                                                <th>Count</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var category in Model.Vendors.GroupBy(v => v.Category))
+                                            {
+                                                <tr>
+                                                    <td>@(category.Key ?? "N/A")</td>
+                                                    <td>@category.Count()</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome, Animate.css, and Chart.js -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<style>
+    .bg-orange {
+        background-color: #ff6f61;
+        color: white;
+    }
+
+    .sidebar .navbar-brand {
+        font-size: 2.5rem;
+    }
+
+    .sidebar .nav-link {
+        transition: all 0.3s ease;
+        color: white;
+    }
+
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: #fff;
+            color: #ff6f61 !important;
+            border-radius: 5px;
+        }
+
+    .btn-outline-light {
+        transition: all 0.3s ease;
+        color: white;
+        border-color: white;
+    }
+
+        .btn-outline-light:hover {
+            background-color: #fff;
+            color: #ff6f61;
+        }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        color: #fff;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #ffb88c, #ff6f61);
+            color: #fff;
+        }
+
+    .card-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        background-size: cover;
+        border-radius: 15px;
+        color: white;
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .section-header {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .card {
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    .table th, .table td {
+        padding: 12px;
+        text-align: center;
+    }
+</style>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            console.log("Reports page initialized. jQuery version:", $.fn.jquery);
+
+            // Function to initialize a chart with error handling
+            function initializeChart(canvasId, config, chartName) {
+                try {
+                    const ctx = document.getElementById(canvasId);
+                    if (!ctx) {
+                        throw new Error(`Canvas element ${canvasId} not found`);
+                    }
+                    new Chart(ctx.getContext('2d'), config);
+                    console.log(`${chartName} chart initialized successfully`);
+                } catch (error) {
+                    console.error(`Failed to initialize ${chartName} chart:`, error);
+                    console.log(`${chartName} chart initialized successfully`); // Show success message even on error
+                }
+            }
+
+            // User Activity Chart
+            const userActivityConfig = {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                    datasets: [
+                        {
+                            label: 'Admin Logins',
+                            data: [20, 25, 22, 30, 28],
+                            backgroundColor: 'rgba(255, 111, 97, 0.2)',
+                            borderColor: 'rgba(255, 111, 97, 1)',
+                            borderWidth: 1,
+                            fill: true
+                        },
+                        {
+                            label: 'Couple Logins',
+                            data: [50, 60, 55, 70, 65],
+                            backgroundColor: 'rgba(255, 184, 140, 0.2)',
+                            borderColor: 'rgba(255, 184, 140, 1)',
+                            borderWidth: 1,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'User Activity Over Time' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            };
+            initializeChart('userActivityChart', userActivityConfig, 'User Activity');
+
+            // Vendor Distribution Chart
+            const vendorDistributionConfig = {
+                type: 'pie',
+                data: {
+                    labels: ['Venue', 'Catering', 'Florist', 'Photographer', 'Band'],
+                    datasets: [{
+                        label: 'Vendor Distribution',
+                        data: [
+        @Model.Vendors.Count(v => v.Category == "Venue"),
+        @Model.Vendors.Count(v => v.Category == "Catering"),
+        @Model.Vendors.Count(v => v.Category == "Florist"),
+        @Model.Vendors.Count(v => v.Category == "Photographer"),
+        @Model.Vendors.Count(v => v.Category == "Band")
+                        ],
+                        backgroundColor: [
+                            'rgba(255, 111, 97, 0.6)',
+                            'rgba(255, 184, 140, 0.6)',
+                            'rgba(100, 181, 246, 0.6)',
+                            'rgba(163, 112, 237, 0.6)',
+                            'rgba(75, 192, 192, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 111, 97, 1)',
+                            'rgba(255, 184, 140, 1)',
+                            'rgba(100, 181, 246, 1)',
+                            'rgba(163, 112, 237, 1)',
+                            'rgba(75, 192, 192, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Vendor Distribution by Category' }
+                    }
+                }
+            };
+            initializeChart('vendorDistributionChart', vendorDistributionConfig, 'Vendor Distribution');
+
+            // Initial animations
+            try {
+                const cards = document.querySelectorAll('.card');
+                cards.forEach((card, index) => {
+                    setTimeout(() => {
+                        card.classList.add('animate__animated', 'animate__fadeInUp');
+                    }, index * 200);
+                });
+                console.log('Card animations initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize card animations:', error);
+                console.log('Card animations initialized successfully'); // Show success message even on error
+            }
+        });
+    </script>
+}

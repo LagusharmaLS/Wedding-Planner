@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Verify MFA";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-white text-center">
+                    <h3>Multi-Factor Authentication</h3>
+                </div>
+                <div class="card-body">
+                    <p>A verification code has been sent to @ViewBag.Email. Please enter the code below to continue. (Simulated code: 123456)</p>
+                    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @ViewBag.ErrorMessage
+                        </div>
+                    }
+                    <form asp-action="VerifyMFA" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">MFA Code</label>
+                            <input type="text" name="mfaCode" class="form-control" placeholder="Enter the code" required />
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100">Verify</button>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <p>Didn't receive a code? <a href="#">Resend</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

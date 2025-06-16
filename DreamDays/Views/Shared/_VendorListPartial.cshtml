@@ -1,0 +1,164 @@
+﻿@model DreamDays.Models.CoupleDashboardViewModel
+
+<style>
+    .vendor-card {
+        border-radius: 15px;
+        background: #fff;
+        overflow: hidden;
+        border: 1px solid #ffe6e0;
+        flex: 0 0 400px; /* Increased width from 300px to 400px */
+        margin-right: 15px; /* Slightly reduced spacing */
+    }
+
+    .vendor-image {
+        width: 80px; /* Reduced from 100px */
+        height: 80px;
+        object-fit: cover;
+        border: 3px solid #ffe6e0;
+        margin-bottom: 10px; /* Reduced margin */
+    }
+
+    .card-body {
+        padding: 15px; /* Reduced padding for compact layout */
+        text-align: center;
+    }
+
+    .card-title {
+        font-size: 1.2rem; /* Reduced from default ~1.5rem */
+        margin-bottom: 10px; /* Reduced margin */
+    }
+
+    .text-muted {
+        font-size: 0.9rem; /* Reduced font size */
+        margin-bottom: 10px; /* Reduced margin */
+    }
+
+    .btn-sm {
+        padding: 5px 10px; /* Slightly smaller buttons */
+        font-size: 0.8rem; /* Reduced font size */
+    }
+
+    .vendor-scroll-container {
+        display: flex;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        padding-bottom: 10px;
+        gap: 15px; /* Match margin-right */
+    }
+
+        .vendor-scroll-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .vendor-scroll-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(90deg, #ff6f61, #ffb88c);
+            border-radius: 4px;
+        }
+
+        .vendor-scroll-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+    .card {
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    .hover-scale:hover {
+        transform: scale(1.05);
+    }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        color: #fff;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #ffb88c, #ff6f61);
+            color: #fff;
+        }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    #noVendorsMessage {
+        margin-top: 20px;
+        font-size: 1.2em;
+    }
+</style>
+
+<div class="vendor-scroll-container">
+    @if (Model.Vendors != null && Model.Vendors.Any())
+    {
+        foreach (var vendor in Model.Vendors)
+        {
+            string imageUrl = vendor.Category switch
+            {
+                "Venue" => "https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                "Catering" => "https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                _ => "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60"
+            };
+            <div class="vendor-card"
+                 data-id="@vendor.Id"
+                 data-name="@(vendor.Name?.ToLower() ?? "")"
+                 data-category="@(vendor.Category?.ToLower() ?? "")"
+                 data-location="@(vendor.Location?.ToLower() ?? "")"
+                 data-price="@vendor.Price"
+                 data-availability="@(vendor.Availability?.ToLower() ?? "")"
+                 data-description="@vendor.Description"
+                 data-rating="@vendor.Rating.ToString("F1")"
+                 data-contact="@vendor.ContactInfo"
+                 data-isfavorite="@vendor.IsFavorite.ToString().ToLower()"
+                 data-image="@imageUrl">
+                <div class="card h-100 border-0 shadow-sm hover-scale vendor-card">
+                    <div class="card-body">
+                        <img src="@imageUrl" class="rounded-circle mx-auto vendor-image" alt="@vendor.Name">
+                        <h5 class="card-title gradient-text">@vendor.Name</h5>
+                        <p class="text-muted">
+                            <strong>Category:</strong> @vendor.Category<br />
+                            <strong>Location:</strong> @vendor.Location<br />
+                            <strong>Description:</strong> @vendor.Description<br />
+                            <strong>Price:</strong> $@vendor.Price<br />
+                            <strong>Rating:</strong> @vendor.Rating.ToString("F1")/5 <i class="fas fa-star text-warning"></i><br />
+                            <strong>Contact:</strong> @vendor.ContactInfo<br />
+                            <strong>Availability:</strong> @vendor.Availability<br />
+                            <strong>Sample Review:</strong>
+                            @if (vendor.Reviews != null && vendor.Reviews.Any())
+                            {
+                                var review = vendor.Reviews.First();
+                                <span>@review.Comment (Rating: @review.Rating/5)</span>
+                            }
+                            else
+                            {
+                                <span>No reviews yet.</span>
+                            }
+                        </p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button class="btn btn-sm btn-gradient book-btn" data-id="@vendor.Id" data-toggle="modal" data-target="#bookingModal">Book</button>
+                            <button class="btn btn-sm btn-gradient favorite-btn" data-id="@vendor.Id">
+                                <i class="fas @(vendor.IsFavorite ? "fa-heart" : "fa-heart-o")"></i> @(vendor.IsFavorite ? "Remove from Favorites" : "Add to Favorites")
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12 text-center text-muted" id="noVendorsMessage">
+            <p>No vendors match your filters.</p>
+        </div>
+    }
+</div>

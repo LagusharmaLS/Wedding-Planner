@@ -1,0 +1,78 @@
+﻿<!-- Sidebar -->
+<div class="sidebar" style="width: 250px; min-height: 100vh; position: fixed; background-color: #00bcd4; color: white;">
+    <div class="p-3 d-flex flex-column" style="height: 100%;">
+        <a class="navbar-brand fw-bold text-white" href="/Home">
+            <i class="fas fa-heart me-2 text-white"></i><h2 class="d-inline-block ms-2">DreamDays</h2>
+        </a>
+        <ul class="nav flex-column mt-4">
+            <li class="nav-item mb-5">
+                <a class="nav-link text-white @(ViewData["ActivePage"] as string == "PlannerDashboard" ? "active fw-bold" : "")" asp-controller="Home" asp-action="PlannerDashboard">
+                    <i class="fas fa-tachometer-alt me-1"></i> Dashboard Overview
+                </a>
+            </li>
+            <li class="nav-item mb-5">
+                <a class="nav-link text-white @(ViewData["ActivePage"] as string == "Messages" ? "active fw-bold" : "")" asp-controller="Home" asp-action="PlannerMessages">
+                    <i class="fas fa-envelope me-1"></i> Messages
+                </a>
+            </li>
+            <li class="nav-item mb-5">
+                <a class="nav-link text-white @(ViewData["ActivePage"] as string == "Reports" ? "active fw-bold" : "")" asp-controller="Home" asp-action="PlannerReports">
+                    <i class="fas fa-chart-line me-1"></i> Reports
+                </a>
+            </li>
+            <li class="nav-item mt-auto">
+                <a class="nav-link btn btn-outline-light px-3 logout-link text-white" href="#" onclick="showLogoutModal(event)">
+                    <i class="fas fa-sign-out-alt me-1"></i> Log Out
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+                <button type="button" class="close" onclick="hideLogoutModal()">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to log out?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="hideLogoutModal()">Cancel</button>
+                <a href="@Url.Action("Logout", "Home")" class="btn btn-gradient">Confirm</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showLogoutModal(event) {
+        event.preventDefault();
+        console.log("Showing logout modal");
+        const modal = document.getElementById('logoutModal');
+        modal.classList.add('show');
+        modal.style.display = 'block';
+        document.body.classList.add('modal-open');
+        const backdrop = document.createElement('div');
+        backdrop.classList.add('modal-backdrop', 'fade', 'show');
+        document.body.appendChild(backdrop);
+    }
+
+    function hideLogoutModal() {
+        console.log("Hiding logout modal");
+        const modal = document.getElementById('logoutModal');
+        modal.classList.remove('show');
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+            backdrop.remove();
+        }
+    }
+</script>

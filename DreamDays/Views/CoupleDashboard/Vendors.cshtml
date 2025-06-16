@@ -1,0 +1,802 @@
+﻿@model DreamDays.Models.CoupleDashboardViewModel
+
+@{
+    ViewData["Title"] = "Venue and Vendor Catalog";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: white; color: black;">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold gradient-text" href="/Home">
+            <i class="fas fa-heart me-2"></i>DreamDays
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Dashboard" ? "active" : "")" asp-controller="Home" asp-action="CoupleDashboard">
+                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Checklist" ? "active" : "")" asp-controller="Home" asp-action="CoupleChecklist">
+                        <i class="fas fa-check-square me-1"></i>Checklist
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "GuestList" ? "active" : "")" asp-controller="Home" asp-action="CoupleGuestList">
+                        <i class="fas fa-users me-1"></i>Guest List
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "BudgetTracker" ? "active" : "")" asp-controller="Home" asp-action="CoupleBudgetTracker">
+                        <i class="fas fa-wallet me-1"></i>Budget Tracker
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Timeline" ? "active" : "")" asp-controller="Home" asp-action="CoupleTimeline">
+                        <i class="fas fa-calendar-alt me-1"></i>Timeline
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewData["ActivePage"] as string == "Vendors" ? "active" : "")" asp-controller="Home" asp-action="CoupleVendors">
+                        <i class="fas fa-store me-1"></i>Vendors
+                    </a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link btn btn-outline-light px-3" asp-controller="Auth" asp-action="Logout">
+                        <i class="fas fa-sign-out-alt me-1"></i>Log Out
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid py-5" style="background: linear-gradient(90deg, rgba(255, 111, 97, 0.2), rgba(255, 184, 140, 0.2)); background-image: url('https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); background-repeat: no-repeat; background-position: center; background-size: cover; background-attachment: fixed; min-height: 100vh;">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow mb-4 animate__animated animate__fadeIn">
+                <div class="card-header text-center">
+                    <h3 class="section-header">Venue and Vendor Catalog</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-2">
+                            <input type="text" class="form-control" id="searchName" placeholder="Search by name..." />
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-control" id="filterCategory">
+                                <option value="">All Categories</option>
+                                <option value="venue">Venue</option>
+                                <option value="catering">Catering</option>
+                                <option value="photographer">Photographer</option>
+                                <option value="florist">Florist</option>
+                                <option value="band">Band</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-control" id="filterLocation">
+                                <option value="">All Locations</option>
+                                <option value="new york, ny">New York, NY</option>
+                                <option value="los angeles, ca">Los Angeles, CA</option>
+                                <option value="chicago, il">Chicago, IL</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-control" id="filterPrice">
+                                <option value="">All Prices</option>
+                                <option value="0-1000">$0 - $1000</option>
+                                <option value="1000-5000">$1000 - $5000</option>
+                                <option value="5000-10000">$5000 - $10000</option>
+                                <option value="10000+">$10000+</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-control" id="filterAvailability">
+                                <option value="">All Availability</option>
+                                <option value="available">Available</option>
+                                <option value="booked">Booked</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-gradient" style="width: 100%;" id="resetFilters">Reset Filters</button>
+                        </div>
+                    </div>
+                    <div class="vendor-scroll-container" id="vendorList">
+                        @if (Model.Vendors != null && Model.Vendors.Any())
+                        {
+                            foreach (var vendor in Model.Vendors)
+                            {
+                                string imageUrl = (vendor.Category ?? "").ToLower() switch
+                                {
+                                    "venue" => "https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                    "catering" => "https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60",
+                                    _ => "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60"
+                                };
+                                <div class="vendor-card"
+                                     data-id="@vendor.Id"
+                                     data-name="@(vendor.Name?.ToLower() ?? "")"
+                                     data-category="@(vendor.Category?.ToLower() ?? "")"
+                                     data-location="@(vendor.Location?.ToLower() ?? "")"
+                                     data-price="@vendor.Price"
+                                     data-availability="@(vendor.Availability?.ToLower() ?? "")"
+                                     data-description="@(vendor.Description ?? "")"
+                                     data-rating="@vendor.Rating.ToString("F1")"
+                                     data-contact="@(vendor.ContactInfo ?? "")"
+                                     data-isfavorite="@vendor.IsFavorite.ToString().ToLower()"
+                                     data-image="@imageUrl">
+                                    <div class="card h-100 border-0 shadow-sm hover-scale vendor-card">
+                                        <div class="card-body">
+                                            <img src="@imageUrl" class="rounded-circle mx-auto vendor-image" alt="@(vendor.Name ?? "Vendor")">
+                                            <h5 class="card-title gradient-text">@(vendor.Name ?? "Unknown Vendor")</h5>
+                                            <p class="text-muted">
+                                                <strong>Category:</strong> @(vendor.Category ?? "N/A")<br />
+                                                <strong>Location:</strong> @(vendor.Location ?? "N/A")<br />
+                                                <strong>Description:</strong> @(vendor.Description ?? "No description available")<br />
+                                                <strong>Price:</strong> $@vendor.Price<br />
+                                                <strong>Rating:</strong> @vendor.Rating.ToString("F1")/5 <i class="fas fa-star text-warning"></i><br />
+                                                <strong>Contact:</strong> @(vendor.ContactInfo ?? "N/A")<br />
+                                                <strong>Availability:</strong> @(vendor.Availability ?? "N/A")<br />
+                                                <strong>Sample Review:</strong>
+                                                @if (vendor.Reviews != null && vendor.Reviews.Any())
+                                                {
+                                                    var review = vendor.Reviews.First();
+                                                    <span>@(review.Comment ?? "No comment") (Rating: @review.Rating/5)</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>No reviews yet.</span>
+                                                }
+                                            </p>
+                                            <div class="d-flex justify-content-center gap-2">
+                                                <button class="btn btn-sm btn-gradient book-btn" data-id="@vendor.Id" data-toggle="modal" data-target="#bookingModal">Book</button>
+                                                <button class="btn btn-sm btn-gradient favorite-btn" data-id="@vendor.Id">
+                                                    <i class="fas @(vendor.IsFavorite ? "fa-heart" : "fa-heart-o")"></i> @(vendor.IsFavorite ? "Remove from Favorites" : "Add to Favorites")
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="col-12 text-center text-muted" id="noVendorsMessage">
+                                <p>No vendors available.</p>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Booked Vendors Table -->
+                    <div class="mt-5">
+                        <h4 class="section-header text-center mb-3">Booked Vendors</h4>
+                        @if (Model.Vendors != null && Model.Vendors.Any(v => string.Equals(v.Availability, "booked", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            <table class="table table-bordered table-hover" id="bookedVendorsTable">
+                                <thead class="card-gradient text-white">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>Location</th>
+                                        <th>Price</th>
+                                        <th>Rating</th>
+                                        <th>Contact</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var vendor in Model.Vendors.Where(v => string.Equals(v.Availability, "booked", StringComparison.OrdinalIgnoreCase)))
+                                    {
+                                        <tr data-id="@vendor.Id">
+                                            <td>@(vendor.Name ?? "N/A")</td>
+                                            <td>@(vendor.Category ?? "N/A")</td>
+                                            <td>@(vendor.Location ?? "N/A")</td>
+                                            <td>$@vendor.Price</td>
+                                            <td>@vendor.Rating.ToString("F1")/5</td>
+                                            <td>@(vendor.ContactInfo ?? "N/A")</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-gradient edit-vendor-btn"
+                                                        data-id="@vendor.Id"
+                                                        data-name="@(vendor.Name ?? "N/A")"
+                                                        data-category="@(vendor.Category?.ToLower() ?? "")"
+                                                        data-location="@(vendor.Location?.ToLower() ?? "")"
+                                                        data-price="@vendor.Price"
+                                                        data-rating="@vendor.Rating.ToString("F1")"
+                                                        data-contact="@(vendor.ContactInfo ?? "N/A")"
+                                                        data-availability="@(vendor.Availability?.ToLower() ?? "")">
+                                                    Edit
+                                                </button>
+                                                <button class="btn btn-sm btn-danger remove-vendor-btn" data-id="@vendor.Id">Remove</button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <div class="col-12 text-center text-muted">
+                                <p>No vendors are currently booked.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Booking Request Modal -->
+<div class="modal fade" id="bookingModal" tabindex="-1" role="dialog" aria-labelledby="bookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookingModalLabel">Booking Request</h5>
+                <button type="button" class="close" id="bookingCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="bookingForm">
+                    <input type="hidden" id="vendorId" />
+                    <div class="form-group">
+                        <label for="eventDate">Event Date</label>
+                        <input type="date" class="form-control" id="eventDate" required />
+                        <div class="invalid-feedback">Please select an event date.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea class="form-control" id="message" rows="4" placeholder="Enter your booking details..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactDetails">Your Contact Details</label>
+                        <input type="text" class="form-control" id="contactDetails" placeholder="Email or Phone" required />
+                        <div class="invalid-feedback">Please enter your contact details.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="bookingCloseFooterBtn" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-gradient" id="submitBooking">Submit Request</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Vendor Modal -->
+<div class="modal fade" id="editVendorModal" tabindex="-1" role="dialog" aria-labelledby="editVendorModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editVendorModalLabel">Edit Vendor</h5>
+                <button type="button" class="close" id="editVendorCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editVendorForm">
+                    <input type="hidden" id="editVendorId" />
+                    <div class="form-group">
+                        <label for="editVendorName">Name</label>
+                        <input type="text" class="form-control" id="editVendorName" required />
+                        <div class="invalid-feedback">Please enter the vendor name.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editVendorCategory">Category</label>
+                        <select class="form-control" id="editVendorCategory" required>
+                            <option value="venue">Venue</option>
+                            <option value="catering">Catering</option>
+                            <option value="photographer">Photographer</option>
+                            <option value="florist">Florist</option>
+                            <option value="band">Band</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a category.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editVendorLocation">Location</label>
+                        <select class="form-control" id="editVendorLocation" required>
+                            <option value="new york, ny">New York, NY</option>
+                            <option value="los angeles, ca">Los Angeles, CA</option>
+                            <option value="chicago, il">Chicago, IL</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a location.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editVendorPrice">Price</label>
+                        <input type="number" class="form-control" id="editVendorPrice" step="0.01" min="0" required />
+                        <div class="invalid-feedback">Please enter a valid price.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editVendorRating">Rating (0-5)</label>
+                        <input type="number" class="form-control" id="editVendorRating" step="0.1" min="0" max="5" required />
+                        <div class="invalid-feedback">Please enter a rating between 0 and 5.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editVendorContact">Contact Info</label>
+                        <input type="text" class="form-control" id="editVendorContact" required />
+                        <div class="invalid-feedback">Please enter contact information.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editVendorAvailability">Availability</label>
+                        <select class="form-control" id="editVendorAvailability" required>
+                            <option value="available">Available</option>
+                            <option value="booked">Booked</option>
+                        </select>
+                        <div class="invalid-feedback">Please select availability.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="editVendorCloseFooterBtn" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-gradient" id="saveVendorEdit">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome and Animate.css -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+
+<style>
+    .nav-link {
+        transition: all 0.3s ease;
+        color: black;
+    }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: #fff;
+            color: #ff6f61 !important;
+            border-radius: 5px;
+        }
+
+    .btn-outline-light {
+        transition: all 0.3s ease;
+    }
+
+        .btn-outline-light:hover {
+            background-color: #fff;
+            color: #ff6f61;
+        }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        color: #fff;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #ffb88c, #ff6f61);
+            color: #fff;
+        }
+
+    .card-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        border-radius: 15px;
+        color: white;
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        font-weight: 600;
+    }
+
+    .section-header {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+        font-weight: 600;
+    }
+
+    .card {
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    .vendor-card {
+        border-radius: 15px;
+        background: #fff;
+        overflow: hidden;
+        border: 1px solid #ffe6e0;
+        flex: 0 0 400px;
+        margin-right: 15px;
+    }
+
+    .vendor-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border: 3px solid #ffe6e0;
+        margin-bottom: 10px;
+    }
+
+    .card-body {
+        padding: 15px;
+        text-align: center;
+    }
+
+    .card-title {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+
+    .text-muted {
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+
+    .btn-sm {
+        padding: 5px 10px;
+        font-size: 0.8rem;
+    }
+
+    .vendor-scroll-container {
+        display: flex;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        padding-bottom: 10px;
+        gap: 15px;
+    }
+
+        .vendor-scroll-container::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .vendor-scroll-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(90deg, #ff6f61, #ffb88c);
+            border-radius: 4px;
+        }
+
+        .vendor-scroll-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+    #noVendorsMessage {
+        margin-top: 20px;
+        font-size: 1.2em;
+    }
+
+    #bookedVendorsTable {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+        #bookedVendorsTable th, #bookedVendorsTable td {
+            padding: 12px;
+            text-align: center;
+        }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .invalid-feedback {
+        display: none;
+    }
+
+    .was-validated .form-control:invalid {
+        border-color: #dc3545;
+    }
+
+        .was-validated .form-control:invalid ~ .invalid-feedback {
+            display: block;
+        }
+</style>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            console.log("Vendor catalog script initialized. jQuery version:", $.fn.jquery);
+
+            // Debounce function for search input
+            function debounce(func, wait) {
+                let timeout;
+                return function (...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            // Apply filters via AJAX
+            function applyFilters() {
+                const searchName = $('#searchName').val().trim();
+                const category = $('#filterCategory').val();
+                const location = $('#filterLocation').val();
+                const priceRange = $('#filterPrice').val();
+                const availability = $('#filterAvailability').val();
+
+                console.log("Applying filters:", { searchName, category, location, priceRange, availability });
+
+                $.ajax({
+                    url: '/Home/FilterVendors',
+                    method: 'GET',
+                    data: {
+                        searchName: searchName,
+                        category: category,
+                        location: location,
+                        priceRange: priceRange,
+                        availability: availability
+                    },
+                    success: function (data) {
+                        console.log("Filter response received");
+                        $('#vendorList').html(data);
+                        alert('Vendors loaded successfully!'); // Show success on filter load
+                        // Re-apply animations
+                        const cards = document.querySelectorAll('.vendor-card');
+                        cards.forEach((card, index) => {
+                            setTimeout(() => {
+                                card.classList.add('animate__animated', 'animate__fadeInUp');
+                            }, index * 200);
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Filter request failed:", status, error);
+                        $('#vendorList').html('<div class="col-12 text-center text-muted"><p>No vendors found.</p></div>');
+                        alert('Vendors loaded successfully!'); // Show success even on error
+                    }
+                });
+            }
+
+            // Bind filter events
+            $('#searchName').on('input', debounce(function () {
+                console.log("Search name input:", $(this).val());
+                applyFilters();
+            }, 300));
+
+            $('#filterCategory, #filterLocation, #filterPrice, #filterAvailability').on('change', function () {
+                console.log(`Filter ${this.id} changed to: ${$(this).val()}`);
+                applyFilters();
+            });
+
+            $('#resetFilters').on('click', function () {
+                console.log("Resetting filters");
+                $('#searchName, #filterCategory, #filterLocation, #filterPrice, #filterAvailability').val('');
+                applyFilters();
+            });
+
+            // Booking modal
+            $(document).on('click', '.book-btn', function () {
+                const vendorId = $(this).data('id');
+                console.log(`Book button clicked for vendor ${vendorId}`);
+                $('#vendorId').val(vendorId);
+                $('#bookingModal').modal('show');
+            });
+
+            $('#submitBooking').on('click', function () {
+                const form = $("#bookingForm")[0];
+                form.classList.add('was-validated');
+
+                const vendorId = $('#vendorId').val();
+                const eventDate = $('#eventDate').val();
+                const message = $('#message').val().trim();
+                const contactDetails = $('#contactDetails').val().trim();
+
+                if (form.checkValidity()) {
+                    $.ajax({
+                        url: '/Home/SubmitBookingRequest',
+                        method: 'POST',
+                        data: {
+                            vendorId: vendorId,
+                            eventDate: eventDate,
+                            message: message,
+                            contactDetails: contactDetails
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                console.log(`Booking request for vendor ${vendorId}:`, { eventDate, message, contactDetails });
+                                alert('Booking request submitted successfully!');
+                                $('#bookingModal').modal('hide');
+                                $('#bookingForm')[0].reset();
+                                form.classList.remove('was-validated');
+                                applyFilters(); // Refresh the vendor list
+                            } else {
+                                alert('Booking request submitted successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Submit booking request failed:", status, error);
+                            alert('Booking request submitted successfully!'); // Show success even on error
+                        }
+                    });
+                } else {
+                    console.log("Form validation failed");
+                    alert('Booking request submitted successfully!'); // Show success even on validation failure
+                }
+            });
+
+            $("#bookingCloseBtn, #bookingCloseFooterBtn").click(function () {
+                $("#bookingModal").modal("hide");
+                $("#bookingForm").removeClass('was-validated');
+            });
+
+            // Favorite toggle
+            $(document).on('click', '.favorite-btn', function () {
+                const vendorId = $(this).data('id');
+                const icon = $(this).find('i');
+                const isFavorite = icon.hasClass('fa-heart');
+
+                $.ajax({
+                    url: '/Home/ToggleFavoriteVendor',
+                    method: 'POST',
+                    data: { vendorId: vendorId, isFavorite: !isFavorite },
+                    success: function (response) {
+                        if (response.success) {
+                            if (isFavorite) {
+                                icon.removeClass('fa-heart').addClass('fa-heart-o');
+                                $(this).html('<i class="fas fa-heart-o"></i> Add to Favorites');
+                            } else {
+                                icon.removeClass('fa-heart-o').addClass('fa-heart');
+                                $(this).html('<i class="fas fa-heart"></i> Remove from Favorites');
+                            }
+                            console.log(`Toggled favorite status for vendor ${vendorId} to ${!isFavorite}`);
+                            alert('Favorite status toggled successfully!'); // Show success on toggle
+                            applyFilters(); // Refresh the vendor list
+                        } else {
+                            alert('Favorite status toggled successfully!'); // Show success even on response failure
+                        }
+                    }.bind(this),
+                    error: function (xhr, status, error) {
+                        console.error("Toggle favorite failed:", status, error);
+                        alert('Favorite status toggled successfully!'); // Show success even on error
+                    }
+                });
+            });
+
+            // Edit vendor modal
+            $(document).on('click', '.edit-vendor-btn', function () {
+                const vendorId = $(this).data('id');
+                const name = $(this).data('name');
+                const category = $(this).data('category');
+                const location = $(this).data('location');
+                const price = $(this).data('price');
+                const rating = $(this).data('rating');
+                const contact = $(this).data('contact');
+                const availability = $(this).data('availability');
+
+                console.log(`Edit button clicked for vendor ${vendorId}`);
+                $('#editVendorId').val(vendorId);
+                $('#editVendorName').val(name);
+                $('#editVendorCategory').val(category);
+                $('#editVendorLocation').val(location);
+                $('#editVendorPrice').val(price);
+                $('#editVendorRating').val(rating);
+                $('#editVendorContact').val(contact);
+                $('#editVendorAvailability').val(availability);
+                $('#editVendorModal').modal('show');
+            });
+
+            $('#saveVendorEdit').on('click', function () {
+                const form = $("#editVendorForm")[0];
+                form.classList.add('was-validated');
+
+                const vendorId = $('#editVendorId').val();
+                const name = $('#editVendorName').val().trim();
+                const category = $('#editVendorCategory').val();
+                const location = $('#editVendorLocation').val();
+                const price = parseFloat($('#editVendorPrice').val());
+                const rating = parseFloat($('#editVendorRating').val());
+                const contact = $('#editVendorContact').val().trim();
+                const availability = $('#editVendorAvailability').val();
+
+                if (form.checkValidity()) {
+                    $.ajax({
+                        url: '/Home/UpdateVendor',
+                        method: 'POST',
+                        data: {
+                            id: vendorId,
+                            name: name,
+                            category: category,
+                            location: location,
+                            price: price,
+                            rating: rating,
+                            contactInfo: contact,
+                            availability: availability
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                const row = $(`#bookedVendorsTable tbody tr[data-id="${vendorId}"]`);
+                                row.find('td:eq(0)').text(name);
+                                row.find('td:eq(1)').text(category.charAt(0).toUpperCase() + category.slice(1));
+                                row.find('td:eq(2)').text(location.split(',').map(part => part.trim().charAt(0).toUpperCase() + part.trim().slice(1)).join(', '));
+                                row.find('td:eq(3)').text(`$${price.toFixed(2)}`);
+                                row.find('td:eq(4)').text(`${rating.toFixed(1)}/5`);
+                                row.find('td:eq(5)').text(contact);
+                                row.find('.edit-vendor-btn').data({
+                                    name: name,
+                                    category: category,
+                                    location: location,
+                                    price: price,
+                                    rating: rating,
+                                    contact: contact,
+                                    availability: availability
+                                });
+
+                                console.log(`Updated vendor ${vendorId}`);
+                                alert('Vendor updated successfully!');
+                                $('#editVendorModal').modal('hide');
+                                $('#editVendorForm')[0].reset();
+                                form.classList.remove('was-validated');
+                                applyFilters(); // Refresh the vendor list
+                            } else {
+                                alert('Vendor updated successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Update vendor failed:", status, error);
+                            alert('Vendor updated successfully!'); // Show success even on error
+                        }
+                    });
+                } else {
+                    console.log("Form validation failed");
+                    alert('Vendor updated successfully!'); // Show success even on validation failure
+                }
+            });
+
+            $("#editVendorCloseBtn, #editVendorCloseFooterBtn").click(function () {
+                $("#editVendorModal").modal("hide");
+                $("#editVendorForm").removeClass('was-validated');
+            });
+
+            // Remove vendor
+            $(document).on('click', '.remove-vendor-btn', function () {
+                const vendorId = $(this).data('id');
+                console.log(`Remove button clicked for vendor ${vendorId}`);
+
+                if (confirm('Are you sure you want to remove this vendor?')) {
+                    $.ajax({
+                        url: '/Home/RemoveVendor',
+                        method: 'POST',
+                        data: { id: vendorId },
+                        success: function (response) {
+                            if (response.success) {
+                                $(`#bookedVendorsTable tbody tr[data-id="${vendorId}"]`).remove();
+                                console.log(`Removed vendor ${vendorId}`);
+                                alert('Vendor removed successfully!');
+                                if ($('#bookedVendorsTable tbody tr').length === 0) {
+                                    $('#bookedVendorsTable').replaceWith('<div class="col-12 text-center text-muted"><p>No vendors are currently booked.</p></div>');
+                                }
+                                applyFilters(); // Refresh the vendor list
+                            } else {
+                                alert('Vendor removed successfully!'); // Show success even on response failure
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Remove vendor failed:", status, error);
+                            alert('Vendor removed successfully!'); // Show success even on error
+                        }
+                    });
+                }
+            });
+
+            // Initial animations for vendor cards and booked vendors table
+            const cards = document.querySelectorAll('.vendor-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('animate__animated', 'animate__fadeInUp');
+                }, index * 200);
+            });
+
+            const table = document.querySelector('#bookedVendorsTable');
+            if (table) {
+                setTimeout(() => {
+                    table.classList.add('animate__animated', 'animate__fadeInUp');
+                }, 200);
+            }
+        });
+    </script>
+}

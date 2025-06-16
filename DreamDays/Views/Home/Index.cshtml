@@ -1,0 +1,239 @@
+﻿@{
+    ViewData["Title"] = "Welcome to DreamDays";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <i class="fas fa-heart text-orange me-2"></i> DreamDays
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse " id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#about">About Us</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#services">Services</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#contact">Contact Us</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link btn btn-outline-orange mx-1" asp-controller="Auth" asp-action="Login">
+                        <i class="fas fa-sign-in-alt me-1"></i> Login
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn btn-orange text-white mx-1" asp-controller="Auth" asp-action="Register">
+                        <i class="fas fa-user-plus me-1"></i> Signup
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+</nav>
+
+<!-- Header Section -->
+<header class="header-section text-center text-white d-flex align-items-center" style="background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1481653125770-b78c206c59d4?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') no-repeat center center/cover;">
+    <div class="container">
+        <h1 class="display-4 animate__animated animate__fadeInDown">Plan Your Dream Wedding with DreamDays</h1>
+        <p class="lead animate__animated animate__fadeInUp animate__delay-1s">From venues to vendors, we make your special day unforgettable.</p>
+        <a href="#services" class="btn btn-orange btn-lg mt-3 animate__animated animate__zoomIn animate__delay-2s">
+            <i class="fas fa-arrow-down me-2"></i> Explore Our Services
+        </a>
+    </div>
+</header>
+
+<!-- About Us Section -->
+<section id="about" class="py-5">
+    <div class="container">
+        <h2 class="text-center section-title animate__animated animate__fadeIn">About Us</h2>
+        <div class="row mt-5">
+            <div class="col-md-6 animate__animated animate__fadeInLeft">
+                <img src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop" alt="About Us" class="img-fluid rounded shadow">
+            </div>
+            <div class="col-md-6 d-flex align-items-center animate__animated animate__fadeInRight">
+                <div>
+                    <h3>Who We Are</h3>
+                    <p>DreamDays is your all-in-one wedding planning platform, dedicated to making your dream wedding a reality. We connect you with the best vendors, provide tools to manage your budget, timeline, and guest list, and offer personalized support every step of the way.</p>
+                    <p>Our mission is to reduce the stress of wedding planning so you can focus on celebrating your love. Let us handle the details while you create memories that last a lifetime.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section id="services" class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center section-title animate__animated animate__fadeIn">Our Services</h2>
+        <div class="row mt-5">
+            <div class="col-md-4 text-center animate__animated animate__fadeInUp animate__delay-1s">
+                <i class="fas fa-map-marker-alt fa-3x text-orange mb-3"></i>
+                <h4>Venue Booking</h4>
+                <p>Find and book the perfect venue for your wedding, from elegant ballrooms to scenic outdoor locations.</p>
+            </div>
+            <div class="col-md-4 text-center animate__animated animate__fadeInUp animate__delay-2s">
+                <i class="fas fa-utensils fa-3x text-orange mb-3"></i>
+                <h4>Vendor Management</h4>
+                <p>Connect with top-rated vendors for catering, photography, florals, and more, all in one place.</p>
+            </div>
+            <div class="col-md-4 text-center animate__animated animate__fadeInUp animate__delay-3s">
+                <i class="fas fa-calendar-alt fa-3x text-orange mb-3"></i>
+                <h4>Planning Tools</h4>
+                <p>Use our budget tracker, timeline planner, and guest list manager to stay organized and stress-free.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Us Section -->
+<section id="contact" class="py-5">
+    <div class="container">
+        <h2 class="text-center section-title animate__animated animate__fadeIn">Contact Us</h2>
+        <div class="row mt-5">
+            <div class="col-md-6 animate__animated animate__fadeInLeft">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31684.97451761466!2d79.85620561562502!3d6.927078900000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae2593cf65a1e9d%3A0xe13da4b400e2d38c!2sColombo%2007%2C%20Sri%20Lanka!5e0!3m2!1sen!2sus!4v1697891234567!5m2!1sen!2sus" width="100%" height="400" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+            <div class="col-md-6 animate__animated animate__fadeInRight">
+                <h3>Get in Touch</h3>
+                <p>Have questions or need assistance? We're here to help! Reach out to us, and we'll get back to you as soon as possible.</p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-envelope me-2 text-orange"></i> support@dreamdays.com</li>
+                    <li><i class="fas fa-phone me-2 text-orange"></i> +94 11 234 5678</li>
+                    <li><i class="fas fa-map-marker-alt me-2 text-orange"></i> 45 Park Road, Colombo 07, Sri Lanka</li>
+                </ul>
+                <div class="mt-4">
+                    <a href="mailto:support@dreamdays.com" class="btn btn-orange">
+                        <i class="fas fa-paper-plane me-2"></i> Send Us a Message
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-dark text-white py-4">
+    <div class="container text-center">
+        <p>© 2025 DreamDays. All rights reserved.</p>
+        <div class="social-icons">
+            <a href="#" class="text-white mx-2"><i class="fab fa-facebook fa-2x"></i></a>
+            <a href="#" class="text-white mx-2"><i class="fab fa-twitter fa-2x"></i></a>
+            <a href="#" class="text-white mx-2"><i class="fab fa-instagram fa-2x"></i></a>
+            <a href="#" class="text-white mx-2"><i class="fab fa-pinterest fa-2x"></i></a>
+        </div>
+    </div>
+</footer>
+
+<!-- Embedded CSS -->
+<style>
+    /* Custom styles for the landing page */
+    body {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .navbar {
+        transition: all 0.3s ease;
+    }
+
+    .navbar-brand {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .nav-link {
+        font-size: 1.1rem;
+        margin-left: 15px;
+    }
+
+    .text-orange {
+        color: #ff6f61;
+    }
+
+    .btn-orange {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        color: #fff;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .btn-orange:hover {
+            background: linear-gradient(90deg, #ffb88c, #ff6f61);
+            color: #fff;
+        }
+
+    .btn-outline-orange {
+        border-color: #ff6f61;
+        color: #ff6f61;
+    }
+
+        .btn-outline-orange:hover {
+            background: linear-gradient(90deg, #ff6f61, #ffb88c);
+            color: #fff;
+        }
+
+    .header-section {
+        height: 100vh;
+        padding-top: 100px;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    section {
+        padding: 60px 0;
+    }
+
+    footer .social-icons i {
+        transition: all 0.3s ease;
+    }
+
+        footer .social-icons i:hover {
+            color: #ff6f61;
+        }
+
+    /* Animations */
+    .animate__animated {
+        animation-duration: 1s;
+    }
+
+    .animate__delay-1s {
+        animation-delay: 1s;
+    }
+
+    .animate__delay-2s {
+        animation-delay: 2s;
+    }
+
+    .animate__delay-3s {
+        animation-delay: 3s;
+    }
+
+    /* Responsive adjustments for navbar */
+    @@media (max-width: 991px) {
+        .navbar-nav {
+            text-align: center;
+        }
+
+            .navbar-nav .nav-item {
+                margin: 5px 0;
+            }
+
+            .navbar-nav .nav-link {
+                margin-left: 0;
+            }
+    }
+</style>

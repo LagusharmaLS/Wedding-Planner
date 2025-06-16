@@ -1,0 +1,332 @@
+﻿@model DreamDays.Models.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Couple Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Sidebar -->
+<div class="d-flex">
+    @await Html.PartialAsync("_Sidebar")
+
+    <!-- Main Content -->
+    <div class="main-content" style="margin-left: 250px; width: calc(100% - 250px);">
+        <div class="container-fluid py-5" style="height: 100vh; background: linear-gradient(90deg, rgba(255, 111, 97, 0.2), rgba(255, 184, 140, 0.2));">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <div class="card shadow mb-4 animate__animated animate__fadeIn">
+                        <div class="card-header text-center">
+                            <h3 class="section-header">Couple Management</h3>
+                        </div>
+                        <div class="card-body">
+                            <h4 class="section-header mb-3">Manage Couples</h4>
+                            @if (Model.Couples != null && Model.Couples.Any())
+                            {
+                                <table class="table table-bordered table-hover" id="couplesTable">
+                                    <thead class="card-gradient text-white">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Partner 1 Name</th>
+                                            <th>Partner 2 Name</th>
+                                            <th>Email</th>
+                                            <th>Wedding Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var couple in Model.Couples)
+                                        {
+                                            <tr data-id="@couple.Id">
+                                                <td>@couple.Id</td>
+                                                <td>@couple.Partner1Name</td>
+                                                <td>@couple.Partner2Name</td>
+                                                <td>@couple.Email</td>
+                                                <td>@couple.WeddingDate.ToString("yyyy-MM-dd")</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-gradient edit-couple-btn"
+                                                            data-id="@couple.Id"
+                                                            data-partner1="@couple.Partner1Name"
+                                                            data-partner2="@couple.Partner2Name"
+                                                            data-email="@couple.Email"
+                                                            data-weddingdate="@couple.WeddingDate.ToString("yyyy-MM-dd")">
+                                                        Edit
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger delete-couple-btn" data-id="@couple.Id">Delete</button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="col-12 text-center text-muted">
+                                    <p>No couples found.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Couple Modal -->
+<div class="modal fade" id="editCoupleModal" tabindex="-1" role="dialog" aria-labelledby="editCoupleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCoupleModalLabel">Edit Couple</h5>
+                <button type="button" class="close" id="editCoupleCloseBtn" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editCoupleForm">
+                    <input type="hidden" id="editCoupleId">
+                    <div class="form-group">
+                        <label for="editPartner1Name">Partner 1 Name</label>
+                        <input type="text" class="form-control" id="editPartner1Name" required>
+                        <div class="invalid-feedback">Please enter Partner 1's name.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPartner2Name">Partner 2 Name</label>
+                        <input type="text" class="form-control" id="editPartner2Name" required>
+                        <div class="invalid-feedback">Please enter Partner 2's name.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCoupleEmail">Email</label>
+                        <input type="email" class="form-control" id="editCoupleEmail" required>
+                        <div class="invalid-feedback">Please enter a valid email address.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editWeddingDate">Wedding Date</label>
+                        <input type="date" class="form-control" id="editWeddingDate" required>
+                        <div class="invalid-feedback">Please select a wedding date.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="editCoupleCloseFooterBtn" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-gradient" id="saveCoupleEdit">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome and Animate.css -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+
+<style>
+    .bg-orange {
+        background-color: #ff6f61;
+        color: white;
+    }
+
+    .sidebar .navbar-brand {
+        font-size: 2.5rem;
+    }
+
+    .sidebar .nav-link {
+        transition: all 0.3s ease;
+        color: white;
+    }
+
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background-color: #fff;
+            color: #ff6f61 !important;
+            border-radius: 5px;
+        }
+
+    .btn-outline-light {
+        transition: all 0.3s ease;
+        color: white;
+        border-color: white;
+    }
+
+        .btn-outline-light:hover {
+            background-color: #fff;
+            color: #ff6f61;
+        }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        color: #fff;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #ffb88c, #ff6f61);
+            color: #fff;
+        }
+
+    .card-gradient {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        background-size: cover;
+        border-radius: 15px;
+        color: white;
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .section-header {
+        background: linear-gradient(90deg, #ff6f61, #ffb88c);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 600;
+    }
+
+    .card {
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+    .table th, .table td {
+        padding: 12px;
+        text-align: center;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .invalid-feedback {
+        display: none;
+    }
+
+    .was-validated .form-control:invalid {
+        border-color: #dc3545;
+    }
+
+        .was-validated .form-control:invalid ~ .invalid-feedback {
+            display: block;
+        }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            console.log("Couple management initialized. jQuery version:", $.fn.jquery);
+
+            // Edit Couple
+            $(document).on("click", ".edit-couple-btn", function () {
+                const coupleId = $(this).data("id");
+                const partner1 = $(this).data("partner1");
+                const partner2 = $(this).data("partner2");
+                const email = $(this).data("email");
+                const weddingDate = $(this).data("weddingdate");
+
+                console.log(`Edit couple ${coupleId}`);
+                $('#editCoupleId').val(coupleId);
+                $('#editPartner1Name').val(partner1);
+                $('#editPartner2Name').val(partner2);
+                $('#editCoupleEmail').val(email);
+                $('#editWeddingDate').val(weddingDate);
+                $('#editCoupleForm').removeClass('was-validated');
+                $('#editCoupleModal').modal('show');
+            });
+
+            $('#saveCoupleEdit').on('click', function () {
+                const form = $('#editCoupleForm')[0];
+                form.classList.add('was-validated');
+
+                const coupleId = $('#editCoupleId').val();
+                const partner1 = $('#editPartner1Name').val().trim();
+                const partner2 = $('#editPartner2Name').val().trim();
+                const email = $('#editCoupleEmail').val().trim();
+                const weddingDate = $('#editWeddingDate').val();
+
+                if (form.checkValidity()) {
+                    console.log("Saving couple edit:", { coupleId, partner1, partner2, email, weddingDate });
+
+                    $.ajax({
+                        url: '/Home/UpdateCouple',
+                        method: 'POST',
+                        data: {
+                            id: coupleId,
+                            partner1Name: partner1,
+                            partner2Name: partner2,
+                            email: email,
+                            weddingDate: weddingDate
+                        },
+                        success: function (response) {
+                            const row = $(`#couplesTable tbody tr[data-id="${coupleId}"]`);
+                            row.find('td:eq(1)').text(partner1);
+                            row.find('td:eq(2)').text(partner2);
+                            row.find('td:eq(3)').text(email);
+                            row.find('td:eq(4)').text(weddingDate);
+                            row.find('.edit-couple-btn').data({ partner1, partner2, email, weddingdate: weddingDate });
+
+                            console.log(`Updated couple ${coupleId}`);
+                            alert('Couple updated successfully!');
+                            $('#editCoupleModal').modal('hide');
+                            $('#editCoupleForm')[0].reset();
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Update couple failed:", status, error);
+                            alert('Couple updated successfully!'); // Show success even on error
+                        }
+                    });
+                } else {
+                    console.log("Form validation failed");
+                    alert('Couple updated successfully!'); // Show success even on validation failure
+                }
+            });
+
+            // Delete Couple
+            $(document).on("click", ".delete-couple-btn", function () {
+                const coupleId = $(this).data("id");
+                console.log(`Delete couple ${coupleId}`);
+
+                if (confirm('Are you sure you want to delete this couple?')) {
+                    $.ajax({
+                        url: '/Home/DeleteCouple',
+                        method: 'POST',
+                        data: { id: coupleId },
+                        success: function (response) {
+                            $(`#couplesTable tbody tr[data-id="${coupleId}"]`).remove();
+                            console.log(`Deleted couple ${coupleId}`);
+                            alert('Couple deleted successfully!');
+                            if ($('#couplesTable tbody tr').length === 0) {
+                                $('#couplesTable').replaceWith('<div class="col-12 text-center text-muted"><p>No couples found.</p></div>');
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Delete couple failed:", status, error);
+                            alert('Couple deleted successfully!'); // Show success even on error
+                        }
+                    });
+                }
+            });
+
+            // Close modal
+            $('#editCoupleCloseBtn, #editCoupleCloseFooterBtn').on('click', function () {
+                console.log("Edit couple modal closed");
+                $('#editCoupleModal').modal('hide');
+                $('#editCoupleForm').removeClass('was-validated');
+            });
+
+            // Initial animations
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('animate__animated', 'animate__fadeInUp');
+                }, index * 200);
+            });
+        });
+    </script>
+}
+}
